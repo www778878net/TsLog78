@@ -29,7 +29,7 @@
     "postpublish": "git push origin --all && git push origin --tags",
     "postversion": "npm publish --access public",
     "preversion": "npm test",
-    "test": "npx jtest",
+    "test": "npx jest",
     "build": "tsc",
     "main": "git checkout main && git pull origin main && git merge develop --squash --no-commit"
   },
