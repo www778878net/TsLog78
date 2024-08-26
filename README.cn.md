@@ -1,4 +1,4 @@
-// \README.cn.md
+
 <h1 align="center">TSLOG78</h1>
 <div align="center">
 
