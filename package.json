@@ -1,5 +1,5 @@
 {
-  "name": "@www778878net/TSLog78",
+  "name": "@www778878net/tslog78",
   "version": "0.0.3",
   "description": "TSLog78 arranges different log levels by priority. (TSLog78 按日志优先级安排不同的日志等级)",
   "main": "dist/index.js",
