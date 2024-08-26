@@ -1,0 +1,109 @@
+# .github/workflows/BuildandTest.yml
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**/UpInfo78/UpInfo78.csproj'  
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 
+
+    - name: Check commit message2
+      id: check-commit-message
+      run: |
+        COMMIT_MESSAGE=$(git log --format=%B -n 1 ${{ github.sha }})
+        echo "Commit message: $COMMIT_MESSAGE"
+        if [[ $COMMIT_MESSAGE == *Merge* ]]; then
+          echo "merge_commit=true" >> $GITHUB_OUTPUT
+        else
+          echo "merge_commit=false" >> $GITHUB_OUTPUT
+        fi
+
+
+    - name: Setup .NET Core
+      if: steps.check-commit-message.outputs.merge_commit == 'false'
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Install xmlstarlet
+      run: sudo apt-get update && sudo apt-get install -y xmlstarlet
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build solution
+      run: dotnet build --no-restore
+
+    - name: Update version number
+      id: update-version
+      run: |
+        
+        # Get the current version number from the csproj file
+        CURRENT_VERSION=$(xmlstarlet sel -t -v "//Project/PropertyGroup/PackageVersion" ./UpInfo78/UpInfo78.csproj)
+        
+        # Split the version number into an array
+        IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
+        
+        # Increment the last part of the version number
+        PATCH_VERSION=$((VERSION_PARTS[2] + 1))
+        
+        # Construct the new version number
+        NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${PATCH_VERSION}"
+        
+        # Update the csproj file with the new version number
+        xmlstarlet ed -L -u "//Project/PropertyGroup/PackageVersion" -v "$NEW_VERSION" ./UpInfo78/UpInfo78.csproj
+        
+        # Output the new version number for debugging
+        echo "New version number: $NEW_VERSION"
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Build UpInfo78 project
+      run: dotnet build ./UpInfo78/UpInfo78.csproj --configuration Release
+
+    - name: Create Test Results Directory
+      run: mkdir -p ./test/TestResults
+
+    - name: Run NUnit tests
+      run: dotnet test ./test/Test.csproj --no-build --logger "trx;LogFileName=testresults.trx" --results-directory ./test/TestResults
+
+    - name: Publish test results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: './test/TestResults/*.trx'
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+    - name: Pack project
+      run: dotnet pack ./UpInfo78/UpInfo78.csproj --output ./artifacts --include-symbols --no-build
+
+    - name: Publish to NuGet
+      run: |
+        dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        dotnet nuget push ./artifacts/*.symbols.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+    - name: List files in artifacts directory
+      run: ls -la ./artifacts
+
+    - name: Commit and push changes
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: '${{ steps.update-version.outputs.new_version }}'
+        file_pattern: './UpInfo78/UpInfo78.csproj' 
+        tagging_message: '${{ steps.update-version.outputs.new_version }}'  # **修改**: 在提交时创建标签

@@ -1,6 +1,6 @@
 
 <h1 align="center">TsLOG78</h1>
-<div align="center">
+
 
 
 English| [简体中文](./README.cn.md) 
@@ -80,4 +80,3 @@ try {
 For more detailed information, please refer to the project's [GitHub repository](https://github.com/www778878net/TsLog78) or the [API documentation](http://www.778878.net/docs/#/koa78/).
 
 
-</div>

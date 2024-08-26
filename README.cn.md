@@ -1,6 +1,6 @@
 
 <h1 align="center">TSLOG78</h1>
-<div align="center">
+
 
 
 [English](./README.md) | 简体中文
@@ -76,4 +76,3 @@ try {
 
 
 更多详细信息，请参阅项目的 [GitHub 仓库](https://github.com/www778878net/TsLog78) 或 [API 文档](http://www.778878.net/docs/#/koa78/)。
-</div>
