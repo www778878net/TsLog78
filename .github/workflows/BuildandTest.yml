@@ -13,7 +13,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # 获 取完整历史记录
+          fetch-depth: 0 # 获取完整历史记录
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -26,20 +26,6 @@ jobs:
 
       - name: Run tests
         run: npm test
-
-      - name: Build
-        run: npm run build
-
-      - name: Bump version
-        run: |
-          git config --global user.email "657225485@qq.com"
-          git config --global user.name "Frieda.Hu<657225485@qq.com>"
-          npm version patch -m "Bump version to %s"
-
-      - name: Push changes and tags
-        run: |
-          git push
-          git push --tags
 
       - name: Publish to NPM
         run: npm publish --access public
