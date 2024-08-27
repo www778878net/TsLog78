@@ -1,9 +1,9 @@
 
 <h1 align="center">TSLOG78</h1>
-
-
-
+<div align="center">
 [English](./README.md) | 简体中文
+</div>
+
 ## 1. `TSLOG78` 类文档
 
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
