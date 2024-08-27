@@ -1,6 +1,10 @@
 {
   "name": "@www778878net/tslog78",
+<<<<<<< HEAD
   "version": "0.0.10",
+=======
+  "version": "0.0.8",
+>>>>>>> develop
   "description": "TSLog78 arranges different log levels by priority. (TSLog78 按日志优先级安排不同的日志等级)",
   "main": "dist/index.js",
   "types": "src/index.ts",
