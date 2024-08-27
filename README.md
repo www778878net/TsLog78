@@ -1,8 +1,9 @@
 <h1 align="center">TsLOG78</h1>
-
+<div align="center">
 
 
 English| [简体中文](./README.cn.md) 
+</div>
 # TSLOG78
 
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
