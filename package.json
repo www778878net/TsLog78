@@ -1,6 +1,6 @@
 {
   "name": "@www778878net/tslog78",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "TSLog78 arranges different log levels by priority. (TSLog78 按日志优先级安排不同的日志等级)",
   "main": "dist/index.js",
   "types": "src/index.ts",
@@ -28,12 +28,11 @@
     "debugging"
   ],
   "scripts": {
-    "dev": "cross-env NODE_ENV=dev nodemon -e ts --exec ts-node src/index.ts",
+    "dev": "git checkout develop && git merge main && git push origin develop",
     "main": "git checkout main && git pull origin main && git merge develop --strategy-option theirs --no-edit",
-    "dev":"git checkout develop && git merge main && git push origin develop",
     "build": "tsc",
     "test": "npm run build && npx jest",
-    "prepublishOnly": "npm run build",    
+    "prepublishOnly": "npm run build",
     "preversion": "npm test",
     "version": "git add -A",
     "postversion": "git push --follow-tags && git checkout develop && git merge main && git push origin develop",
