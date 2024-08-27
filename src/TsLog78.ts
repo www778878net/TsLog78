@@ -12,7 +12,7 @@ export class TsLog78 {
   public LevelConsole: number = 30;
   public LevelApi: number = 70;
   private serverLogger?: IServerLog78;
-  private consoleLogger: IConsoleLog78 = new ConsoleLog78();
+  private consoleLogger?: IConsoleLog78 = new ConsoleLog78();
   private fileLogger?: IFileLog78;
 
   public uname: string = '';
@@ -30,7 +30,7 @@ export class TsLog78 {
     this.uname = '';
   }
 
-  public setup(serverLogger: IServerLog78, fileLogger: IFileLog78, consoleLogger: IConsoleLog78, uname: string = 'guest') {
+  public setup(serverLogger?: IServerLog78, fileLogger?: IFileLog78, consoleLogger?: IConsoleLog78, uname: string = 'guest') {
     this.serverLogger = serverLogger;
     this.fileLogger = fileLogger;
     this.consoleLogger = consoleLogger;
