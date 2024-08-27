@@ -29,7 +29,10 @@
     "test": "npx jest",
     "build": "tsc",
     "prepublishOnly": "npm run build",
-    "main": "git checkout main && git pull origin main && git merge develop --squash --no-commit"
+    "main": "git checkout main && git pull origin main && git merge develop --squash --no-commit",
+    "preversion": "npm run test && npm run build",
+    "version": "git add -A",
+    "postversion": "git push --follow-tags && git checkout develop"
   },
   "engines": {
     "node": ">=18.0.0"
