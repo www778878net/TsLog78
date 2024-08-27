@@ -26,11 +26,11 @@
   ],
   "scripts": {
     "dev": "cross-env NODE_ENV=dev nodemon -e ts --exec ts-node src/index.ts",
-    "test": "npx jest",
     "build": "tsc",
+    "test": "npm run build && npx jest",
     "prepublishOnly": "npm run build",
     "main": "git checkout main && git pull origin main && git merge develop --squash --no-commit",
-    "preversion": "npm run test && npm run build",
+    "preversion": "npm test",
     "version": "git add -A",
     "postversion": "git push --follow-tags && git checkout develop"
   },
