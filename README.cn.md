@@ -41,6 +41,29 @@ log.log('Hello, world!', 50);
 - `serverLogger`, `fileLogger`, `consoleLogger`: 分别表示服务器日志记录器、文件日志记录器和控制台日志记录器。
 - `uname`: 用户名，默认为空字符串。
 
+### 日志级别使用建议
+
+虽然日志级别是完全可自定义的,但以下是一般使用建议:
+- 0-29: 详细的调试信息,通常只在开发环境中使用
+- 30-49: 一般信息,可用于跟踪应用程序的正常操作
+- 50-69: 警告信息,表示潜在的问题,但不影响主要功能
+- 70+: 错误和严重问题,需要立即关注
+
+### 示例: 调整日志级别
+```typescript
+import TSLOG78 from '@www778878net/TSLOG78';
+const log = TSLOG78.Instance;
+log.setup(serverLogger, fileLogger, consoleLogger, 'admin');
+// 调整控制台日志级别为0,以打印所有日志(用于调试)
+log.LevelConsole = 0;
+// 调整文件日志级别为60,只记录较严重的警告和错误
+log.LevelFile = 60;
+// 使用不同级别记录日志
+log.log('调试信息', 10); // 只会在控制台输出
+log.log('一般信息', 40); // 控制台输出,不会写入文件
+log.log('警告', 65); // 控制台和文件都会记录
+log.log('错误', 80); // 控制台、文件和API都会记录
+```
 
 ### 方法 Methods
 

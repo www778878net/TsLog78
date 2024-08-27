@@ -22,7 +22,10 @@
     "koa",
     "7788",
     "www778878net",
-    "nodejs"
+    "nodejs",
+    "logging",
+    "multi-level",
+    "debugging"
   ],
   "scripts": {
     "dev": "cross-env NODE_ENV=dev nodemon -e ts --exec ts-node src/index.ts",
