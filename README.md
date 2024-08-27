@@ -1,4 +1,3 @@
-
 <h1 align="center">TsLOG78</h1>
 
 
@@ -16,18 +15,13 @@ English| [简体中文](./README.cn.md)
 
 ### Overview
 
-
 `TSLOG78` is a class for encapsulating logging functionality, supporting various types of log output including console output, file output, and server-side output. This class uses the singleton pattern to ensure there is only one instance globally and provides methods for setting different log levels.
 
-
 ### Installation
-
 ```bash
 npm install @www778878net/TSLOG78
 ```
-
 ### Usage
-
 ```typescript
 import TSLOG78 from '@www778878net/TSLOG78';
 
@@ -35,7 +29,6 @@ const log = TSLOG78.Instance;
 log.setup(serverLogger, fileLogger, consoleLogger, 'admin');
 log.log('Hello, world!', 50);
 ```
-
 ### Properties
 
 
@@ -44,15 +37,12 @@ log.log('Hello, world!', 50);
 - `serverLogger`, `fileLogger`, `consoleLogger`: Respectively represent the server logger, file logger, and console logger instances.
 - `uname`: The username, which defaults to an empty string.
 
-
 ### Methods
-
 
 - `setup`: Sets up the logger instances.
 - `clone`: Creates a clone of the current instance.
 - `logErr`: Logs error messages.
 - `log`: Logs messages based on the provided parameters. Log levels can be set individually for each class.
-
 
 ### Example
 
@@ -79,10 +69,6 @@ try {
   log.logErr(error);
 }
 ```
-
 ### Other
 
-
 For more detailed information, please refer to the project's [GitHub repository](https://github.com/www778878net/TsLog78) or the [API documentation](http://www.778878.net/docs/#/koa78/).
-
-
