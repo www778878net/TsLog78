@@ -29,10 +29,11 @@
   ],
   "scripts": {
     "dev": "cross-env NODE_ENV=dev nodemon -e ts --exec ts-node src/index.ts",
+    "main": "git checkout main && git pull origin main && git merge develop --strategy-option theirs --no-edit",
+    "dev":"git checkout develop && git merge main && git push origin develop",
     "build": "tsc",
     "test": "npm run build && npx jest",
-    "prepublishOnly": "npm run build",
-    "main": "git checkout main && git pull origin main && git merge develop --strategy-option theirs --no-edit",
+    "prepublishOnly": "npm run build",    
     "preversion": "npm test",
     "version": "git add -A",
     "postversion": "git push --follow-tags && git checkout develop && git merge main && git push origin develop",
