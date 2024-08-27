@@ -1,5 +1,5 @@
 "use strict";
-// src/Log78.ts
+// src/TsLog78.ts
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -49,18 +49,12 @@ class TsLog78 {
         key1 = key1 || '';
         key2 = key2 || '';
         key3 = key3 || this.uname;
-        let isDebug = false;
         const keys = [key1, key2, key3, key4, key5, key6];
-        for (const kind of keys) {
-            if (this.debugKind.includes(kind)) {
-                isDebug = true;
-                break;
-            }
-        }
+        const isDebug = keys.some(kind => this.debugKind.includes(kind)); // 修改点
+        const info = `${new Date().toISOString()} \t ${message} ~~ ${content} ~~ ${key1}`;
         if (isDebug || level >= this.LevelApi) {
             this.serverLogger?.logToServer(message, key1, level, key2, key3, content, key4, key5, key6);
         }
-        const info = `${new Date().toISOString()} \t ${message} ~~ ${content} ~~ ${key1}`;
         if (isDebug || level >= this.LevelFile) {
             this.fileLogger?.logToFile(info);
         }
