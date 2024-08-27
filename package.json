@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "TSLog78 arranges different log levels by priority. (TSLog78 按日志优先级安排不同的日志等级)",
   "main": "dist/index.js",
-  "types": "src/index.ts",
+  "types": "dist/index.d.ts",
   "author": {
     "name": "Frieda.Hu ",
     "email": "www778878net@189.cn"
