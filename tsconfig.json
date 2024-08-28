@@ -10,7 +10,9 @@
     "rootDir": "src",
     "outDir": "dist",
     "declaration": true,
-    "declarationDir": "./dist"
+    "declarationDir": "./dist",
+    "types": ["node", "jest"],
+    "noImplicitAny": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"],
