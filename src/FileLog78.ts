@@ -3,7 +3,7 @@ import IFileLog78 from "./IFileLog78";
  
 
 // 实现 FileLog78 类
-class FileLog78 implements IFileLog78 {
+export default class FileLog78 implements IFileLog78 {
     menu: string;
     file: string;
     static logpath: string = "/"; // 静态属性
