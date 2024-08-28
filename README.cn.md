@@ -20,13 +20,13 @@
 ### 安装 Installation
 
 ```bash
-npm install @www778878net/TSLOG78
+npm install TSLOG78
 ```
 
 ### 使用 Usage
 
 ```typescript
-import TSLOG78 from '@www778878net/TSLOG78';
+import TSLOG78 from 'TSLOG78';
 
 const log = TSLOG78.Instance;
 log.setup(serverLogger, fileLogger, consoleLogger, 'admin');
@@ -51,7 +51,7 @@ log.log('Hello, world!', 50);
 
 ### 示例: 调整日志级别
 ```typescript
-import TSLOG78 from '@www778878net/TSLOG78';
+import TSLOG78 from 'TSLOG78';
 const log = TSLOG78.Instance;
 log.setup(serverLogger, fileLogger, consoleLogger, 'admin');
 // 调整控制台日志级别为0,以打印所有日志(用于调试)
@@ -77,7 +77,7 @@ log.log('错误', 80); // 控制台、文件和API都会记录
 ### 示例 Example
 
 ```typescript
-import TSLOG78 from '@www778878net/TSLOG78';
+import TSLOG78 from 'TSLOG78';
 import ServerLOG78 from './ServerLOG78';
 import FileLOG78 from './FileLOG78';
 import ConsoleLOG78 from './ConsoleLOG78';

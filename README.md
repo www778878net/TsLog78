@@ -20,11 +20,11 @@ English| [简体中文](./README.cn.md)
 
 ### Installation
 ```bash
-npm install @www778878net/TSLOG78
+npm install TSLOG78
 ```
 ### Usage
 ```typescript
-import TSLOG78 from '@www778878net/TSLOG78';
+import TSLOG78 from 'TSLOG78';
 
 const log = TSLOG78.Instance;
 log.setup(serverLogger, fileLogger, consoleLogger, 'admin');
@@ -48,7 +48,7 @@ log.log('Hello, world!', 50);
 ### Example
 
 ```typescript
-import TSLOG78 from '@www778878net/TSLOG78';
+import TSLOG78 from 'TSLOG78';
 import ServerLOG78 from './ServerLOG78';
 import FileLOG78 from './FileLOG78';
 import ConsoleLOG78 from './ConsoleLOG78';
