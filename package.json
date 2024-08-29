@@ -31,6 +31,7 @@
     "dev": "git checkout develop && git merge main && git push origin develop",
     "main": "git checkout main && git pull origin main && git merge develop --strategy-option theirs --no-edit",
     "build": "tsc",
+    "clean": "rimraf dist",  
     "test": "npm run build && npx jest",
     "prepublishOnly": "npm run build",
     "preversion": "npm test",

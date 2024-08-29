@@ -1,6 +1,6 @@
 // src/TsLog78.ts
 
-import  ConsoleLog78  from "./ConsoleLog78";
+import ConsoleLog78 from "./ConsoleLog78";
 import IConsoleLog78 from "./IConsoleLog78";
 import IFileLog78 from "./IFileLog78";
 import IServerLog78 from "./IServerLog78";
@@ -17,7 +17,7 @@ export class TsLog78 {
 
   public uname: string = '';
 
-  private static instance?: TsLog78 ;
+  private static instance?: TsLog78;
 
   public static get Instance(): TsLog78 {
     if (!TsLog78.instance) {
@@ -53,7 +53,7 @@ export class TsLog78 {
     this.log(exception.message, 90, key1, previousMethodName, this.uname, exception.stack);
   }
 
-    public log(message: string, level: number = 0, key1: string = '', key2: string = '', key3: string = '', content: string = '', key4: string = '', key5: string = '', key6: string = '') {
+  public log(message: string, level: number = 50, key1: string = '', key2: string = '', key3: string = '', content: string = '', key4: string = '', key5: string = '', key6: string = '') {
     key1 = key1 || '';
     key2 = key2 || '';
     key3 = key3 || this.uname;
