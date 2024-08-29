@@ -1,6 +1,6 @@
 {
   "name": "tslog78",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "TSLog78 arranges different log levels by priority. (TSLog78 按日志优先级安排不同的日志等级)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -31,7 +31,7 @@
     "dev": "git checkout develop && git merge main && git push origin develop",
     "main": "git checkout main && git pull origin main && git merge develop --strategy-option theirs --no-edit",
     "build": "tsc",
-    "clean": "rimraf dist",  
+    "clean": "rimraf dist",
     "test": "npm run build && npx jest",
     "prepublishOnly": "npm run build",
     "preversion": "npm test",
