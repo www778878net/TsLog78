@@ -29,7 +29,7 @@
   ],
   "scripts": {
     "dev": "git checkout develop && git merge main && git push origin develop",
-    "main": "git checkout main && git pull origin main && git merge develop --strategy-option theirs --no-edit && LAST_COMMIT_MSG=$(git log -1 --pretty=%B) && git commit --amend -m \"$LAST_COMMIT_MSG\" && git push origin main",
+    "main": "node hooks/mergeBranches.js",
     "build": "tsc",
     "clean": "rimraf dist",
     "test": "npm run build && npx jest",
@@ -39,7 +39,10 @@
     "postversion": "git push --follow-tags && git checkout develop && git merge main && git push origin develop",
     "version:patch": "npm version patch",
     "version:minor": "npm version minor",
-    "version:major": "npm version major"
+    "version:major": "npm version major",
+    "precommit": "node hooks/pre-commit.js",
+    "prepush": "node hooks/pre-push.js",
+    "hooks": "node hooks/install-hooks.js"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -62,6 +65,7 @@
     "mochawesome": "^4.1.0",
     "nodemon": "^3.1.4",
     "phantom": "^6.3.0",
+    "shelljs": "^0.8.5",
     "supertest": "^4.0.2",
     "ts-jest": "^29.2.5",
     "typescript": "^5.5.4"

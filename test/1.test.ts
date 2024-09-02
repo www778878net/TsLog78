@@ -8,7 +8,7 @@ import IServerLog78 from '../src/IServerLog78';
 // Mock implementations for testing
 class MockServerLog78 implements IServerLog78 {
   logToServer(message: string, key1: string, level: number, key2: string, key3: string, content: string, key4: string, key5: string, key6: string): void {
-    console.log(`Mock Server Log: ${message}`);
+    console.log(`Mock Server   Log: ${message}`);
   }
 }
 
