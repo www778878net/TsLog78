@@ -19,13 +19,13 @@ if (currentBranch === 'develop') {
 }
 
 // Run tests
-// console.log('Running tests...');
-// const testResult = shell.exec('npm test');
+console.log('Running tests...');
+const testResult = shell.exec('npm test');
 
-// if (testResult.code !== 0) {
-//     console.error('Tests failed, push aborted');
-//     shell.exit(1);
-// }
+if (testResult.code !== 0) {
+    console.error('Tests failed, push aborted');
+    shell.exit(1);
+}
 
-// console.log('Tests passed');
+console.log('Tests passed');
 //console.log('Pre-push hook execution completed');
