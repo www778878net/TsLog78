@@ -23,7 +23,7 @@ console.log('Running tests...');
 const testResult = shell.exec('npm test');
 
 if (testResult.code !== 0) {
-    console.error('Tests failed, push aborted');
+    console.error('Tests failed,  push aborted');
     shell.exit(1);
 }
 
