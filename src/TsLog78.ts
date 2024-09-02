@@ -19,7 +19,14 @@ import IConsoleLog78 from "./IConsoleLog78";
 import IFileLog78 from "./IFileLog78";
 import IServerLog78 from "./IServerLog78";
 
-
+/**
+ * 日志类 
+ * 后续加上:
+ * .采样:随机 或条件 减少日志量
+ * .集合:可以按时间段、用户、事件类型等进行聚合
+ * .分级:只对重要级别的日志进行详细记录和分析(现在基本可以了)
+ * .轮转:定期轮转日志文件(文件做了) 服务器要清或转
+ *  */
 export class TsLog78 {
   public debugKind: string[] = [];
   public LevelFile: number = 50;
