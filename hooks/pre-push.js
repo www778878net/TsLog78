@@ -14,18 +14,17 @@ if (currentBranch === 'develop') {
         shell.exit(1);
     }
     console.log('Merge to main completed successfully');
+} else if (currentBranch === 'main') {
+    console.log('Current branch is main. Running npm version patch...');
+    const versionResult = shell.exec('npm run dev');
+
+    if (versionResult.code !== 0) {
+        console.error('npm version patch failed, push aborted');
+        shell.exit(1);
+    }
+    console.log('npm version patch completed successfully');
 } else {
-    console.log(`Current branch is ${currentBranch}. Skipping npm run main.`);
+    console.log(`Current branch is ${currentBranch}. Skipping npm run main and npm version patch.`);
 }
 
-// Run tests
-// console.log('Running tests...');
-// const testResult = shell.exec('npm test');
-
-// if (testResult.code !== 0) {
-//     console.error('Tests failed, push aborted');
-//     shell.exit(1);
-// }
-
-// console.log('Tests passed');
-//console.log('Pre-push hook execution completed');
+console.log('Pre-push hook execution completed');

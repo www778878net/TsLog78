@@ -28,7 +28,7 @@
     "debugging"
   ],
   "scripts": {
-    "dev": "git checkout develop && git merge main && git push origin develop",
+    "dev": "git checkout develop && git merge main ",
     "main": "node hooks/mergeBranches.js",
     "build": "tsc",
     "clean": "rimraf dist",

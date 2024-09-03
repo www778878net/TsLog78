@@ -14,4 +14,4 @@ shell.exec('git merge --squash develop');
 shell.exec(`git commit -m "${lastCommitMsg}"`);
 
 //git push origin main
-shell.exec('git push origin main');
+//shell.exec('git push origin main');
