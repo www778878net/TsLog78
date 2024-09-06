@@ -48,9 +48,14 @@ export default class FileLog78 implements IFileLog78 {
     // 将 LogEntry 对象转换为字符串
     logToFile(logEntry: LogEntry): void {
         try {
+           
             this.logger.info(logEntry.toJson());
+            const now = new Date();
+            if (now.getMinutes() === 0 && now.getSeconds() < 10) {
+                this.clear();
+            }
         } catch (error) {
-            console.error(`Error writing to log file: ${error}`);
+            console.error(`写入日志文件时出错: ${error}`);
         }
     }
 
