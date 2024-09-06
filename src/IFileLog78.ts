@@ -1,3 +1,5 @@
+import { LogEntry } from './LogEntry';
+
 // Copyright 2024 frieda
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +16,7 @@
 
     export default interface IFileLog78 {
       menu: string;
-      logToFile(message: string): void;
+      file: string;
+      logToFile(logEntry: LogEntry): void;
       clear(): void;
     }
