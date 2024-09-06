@@ -31,9 +31,9 @@ import { LogEntry } from './LogEntry';
  *  */
 export class TsLog78 {
   public debugKind: Set<string> = new Set();
-  public LevelFile: number = 30;
+  public LevelFile: number = 50;
   public LevelConsole: number = 60;
-  public LevelApi: number = 50;
+  public LevelApi: number = 70;
   private serverLogger?: IServerLog78;
   private consoleLogger?: IConsoleLog78 = new ConsoleLog78();
   private fileLogger?: IFileLog78 = new FileLog78();
