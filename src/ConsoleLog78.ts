@@ -14,10 +14,24 @@
 
 // src/ConsoleLog78.ts
 
+import  winston from 'winston';
 import IConsoleLog78 from "./IConsoleLog78";
+import { LogEntry } from './LogEntry';
 
 export default class ConsoleLog78 implements IConsoleLog78 {
-  public writeLine(message: string): void {
-    console.log(message);
-  }
+    private logger: winston.Logger;
+
+    constructor() {
+        this.logger = winston.createLogger({
+            level: 'info',
+            format: winston.format.simple(),
+            transports: [
+                new winston.transports.Console()
+            ]
+        });
+    }
+
+    writeLine(logEntry: LogEntry): void {
+        this.logger.info(logEntry.toJson());
+    }
 }

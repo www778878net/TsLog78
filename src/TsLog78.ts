@@ -14,10 +14,12 @@
 
 // src/TsLog78.ts
 
+import FileLog78 from "./FileLog78";
 import ConsoleLog78 from "./ConsoleLog78";
 import IConsoleLog78 from "./IConsoleLog78";
 import IFileLog78 from "./IFileLog78";
 import IServerLog78 from "./IServerLog78";
+import { LogEntry } from './LogEntry';
 
 /**
  * 日志类 
@@ -28,34 +30,32 @@ import IServerLog78 from "./IServerLog78";
  * .轮转:定期轮转日志文件(文件做了) 服务器要清或转
  *  */
 export class TsLog78 {
-  public debugKind: string[] = [];
-  public LevelFile: number = 50;
-  public LevelConsole: number = 30;
-  public LevelApi: number = 70;
+  public debugKind: Set<string> = new Set();
+  public LevelFile: number = 30;
+  public LevelConsole: number = 60;
+  public LevelApi: number = 50;
   private serverLogger?: IServerLog78;
   private consoleLogger?: IConsoleLog78 = new ConsoleLog78();
-  private fileLogger?: IFileLog78;
+  private fileLogger?: IFileLog78 = new FileLog78();
 
-  public uname: string = '';
+  public DebugEntry?: LogEntry;
 
   private static instance?: TsLog78;
 
   public static get Instance(): TsLog78 {
     if (!TsLog78.instance) {
       TsLog78.instance = new TsLog78();
+      TsLog78.instance.setup(undefined, new FileLog78(), new ConsoleLog78());
     }
     return TsLog78.instance;
   }
 
-  constructor() {
-    this.uname = '';
-  }
+  constructor() {}
 
-  public setup(serverLogger?: IServerLog78, fileLogger?: IFileLog78, consoleLogger?: IConsoleLog78, uname: string = 'guest') {
+  public setup(serverLogger?: IServerLog78, fileLogger?: IFileLog78, consoleLogger?: IConsoleLog78) {
     this.serverLogger = serverLogger;
     this.fileLogger = fileLogger;
     this.consoleLogger = consoleLogger;
-    this.uname = uname;
   }
 
   public clone(): TsLog78 {
@@ -63,37 +63,171 @@ export class TsLog78 {
     cloned.serverLogger = this.serverLogger;
     cloned.fileLogger = this.fileLogger;
     cloned.consoleLogger = this.consoleLogger;
-    cloned.uname = this.uname;
     cloned.LevelApi = this.LevelApi;
     cloned.LevelConsole = this.LevelConsole;
     cloned.LevelFile = this.LevelFile;
     return cloned;
   }
 
-  public logErr(exception: Error, key1: string = 'errts', previousMethodName: string = '') {
-    this.log(exception.message, 90, key1, previousMethodName, this.uname, exception.stack);
+  private async processLog(logEntry: LogEntry): Promise<void> {
+    if (!logEntry.basic) {
+      await this.ERRORentry(new LogEntry({ 
+        basic: { 
+          summary: "Error: LogEntry or LogEntry.basic is null",
+          message: "Invalid log entry",
+          logLevelNumber: 60, // ERROR level
+          timestamp: new Date(),
+          logLevel: "ERROR"
+        } 
+      }));
+      return;
+    }
+
+    const isDebug = this.isDebugKey(logEntry);
+
+    if (isDebug || logEntry.basic.logLevelNumber >= this.LevelApi) {
+      if (this.serverLogger) {
+        await this.serverLogger.logToServer(logEntry);
+      }
+    }
+
+    if (isDebug || logEntry.basic.logLevelNumber >= this.LevelFile) {
+      this.fileLogger?.logToFile(logEntry);
+    }
+
+    if (isDebug || logEntry.basic.logLevelNumber >= this.LevelConsole) {
+      this.consoleLogger?.writeLine(logEntry);
+    }
   }
 
-  public log(message: string, level: number = 50, key1: string = '', key2: string = '', key3: string = '', content: string = '', key4: string = '', key5: string = '', key6: string = '') {
-    key1 = key1 || '';
-    key2 = key2 || '';
-    key3 = key3 || this.uname;
-
-    const keys = [key1, key2, key3, key4, key5, key6];
-    const isDebug = keys.some(kind => this.debugKind.includes(kind)); // 修改点
-
-    const info = `${new Date().toISOString()} \t ${message} ~~ ${content} ~~ ${key1}`;
-
-    if (isDebug || level >= this.LevelApi) {
-      this.serverLogger?.logToServer(message, key1, level, key2, key3, content, key4, key5, key6);
+  private isDebugKey(logEntry: LogEntry): boolean {
+    if (this.DebugEntry?.basic) {
+      return !!(
+        (this.DebugEntry.basic.serviceName && logEntry.basic.serviceName && this.DebugEntry.basic.serviceName.toLowerCase() === logEntry.basic.serviceName.toLowerCase()) ||
+        (this.DebugEntry.basic.serviceObj && logEntry.basic.serviceObj && this.DebugEntry.basic.serviceObj.toLowerCase() === logEntry.basic.serviceObj.toLowerCase()) ||
+        (this.DebugEntry.basic.serviceFun && logEntry.basic.serviceFun && this.DebugEntry.basic.serviceFun.toLowerCase() === logEntry.basic.serviceFun.toLowerCase()) ||
+        (this.DebugEntry.basic.userId && logEntry.basic.userId && this.DebugEntry.basic.userId.toLowerCase() === logEntry.basic.userId.toLowerCase()) ||
+        (this.DebugEntry.basic.userName && logEntry.basic.userName && this.DebugEntry.basic.userName.toLowerCase() === logEntry.basic.userName.toLowerCase())
+      );
     }
 
-    if (isDebug || level >= this.LevelFile) {
-      this.fileLogger?.logToFile(info);
-    }
+    const keysToCheck = [
+      logEntry.basic.serviceName,
+      logEntry.basic.serviceObj,
+      logEntry.basic.serviceFun,
+      logEntry.basic.userId,
+      logEntry.basic.userName
+    ];
 
-    if (isDebug || level >= this.LevelConsole) {
-      this.consoleLogger?.writeLine(info);
-    }
+    return keysToCheck.some(key => key && this.debugKind.has(key.toLowerCase()));
   }
-}
+
+  public async DEBUGentry(logEntry: LogEntry, level: number = 10): Promise<void> {
+    logEntry.basic.logLevel = "DEBUG";
+    logEntry.basic.logLevelNumber = level;
+    await this.processLog(logEntry);
+  }
+
+  public async DEBUG(summary: string, message: string, level: number = 10): Promise<void> {
+    const logEntry = new LogEntry({
+      basic: {
+        summary,
+        message,
+        logLevel: "DEBUG",
+        logLevelNumber: level
+      }
+    });
+    await this.processLog(logEntry);
+  }
+
+  public async INFOentry(logEntry: LogEntry, level: number = 30): Promise<void> {
+    logEntry.basic.logLevel = "INFO";
+    logEntry.basic.logLevelNumber = level;
+    await this.processLog(logEntry);
+  }
+
+  public async INFO(summary: string, message: string, level: number = 30): Promise<void> {
+    const logEntry = new LogEntry({
+      basic: {
+        summary,
+        message,
+        logLevel: "INFO",
+        logLevelNumber: level
+      }
+    });
+    await this.processLog(logEntry);
+  }
+
+  public async WARNentry(logEntry: LogEntry, level: number = 50): Promise<void> {
+    logEntry.basic.logLevel = "WARN";
+    logEntry.basic.logLevelNumber = level;
+    await this.processLog(logEntry);
+  }
+
+  public async WARN(summary: string, message: string, level: number = 50): Promise<void> {
+    const logEntry = new LogEntry({
+      basic: {
+        summary,
+        message,
+        logLevel: "WARN",
+        logLevelNumber: level
+      }
+    });
+    await this.processLog(logEntry);
+  }
+
+  public async ERRORentry(logEntry: LogEntry, level: number = 60): Promise<void> {
+    logEntry.basic.logLevel = "ERROR";
+    logEntry.basic.logLevelNumber = level;
+    await this.processLog(logEntry);
+  }
+
+  public async ERROR(summary: string, message: string, level: number = 60): Promise<void> {
+    const logEntry = new LogEntry({
+      basic: {
+        summary,
+        message,
+        logLevel: "ERROR",
+        logLevelNumber: level
+      }
+    });
+    await this.processLog(logEntry);
+  }
+
+  // 使用 LogEntry 对象的方法
+  public async logEntry(logEntry: LogEntry): Promise<void> {
+    await this.processLog(logEntry);
+  }
+
+  // 使用字符串参数的方法
+  public async log(message: string, level: number = 50, key1: string = '', key2: string = '', key3: string = '', content: string = '', key4: string = '', key5: string = '', key6: string = ''): Promise<void> {
+    const logEntry = new LogEntry({
+      basic: {
+        message,
+        logLevelNumber: level,
+        logLevel: this.getLevelString(level),
+        serviceName: key1,
+        serviceObj: key2,
+        serviceFun: key3,
+        userId: key4,
+        userName: key5
+      },
+      additionalProperties: {
+        content,
+        key6
+      }
+    });
+    await this.processLog(logEntry);
+  }
+
+  // 辅助方法，用于获取日志级别字符串
+  private getLevelString(level: number): string {
+    if (level <= 10) return "DEBUG";
+    if (level <= 30) return "INFO";
+    if (level <= 50) return "WARN";
+    return "ERROR";
+  }
+} // 类定义结束
+
+// 将默认导出移到类定义的外部
+export default TsLog78;
