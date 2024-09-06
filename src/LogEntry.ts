@@ -35,7 +35,7 @@ export class LogEntry {
 export class BasicInfo {
   summary?: string;
   logLevelNumber: number = 0;
-  timestamp: Date = new Date();
+  timestamp?: Date = new Date();
   logLevel?: string;
   message?: string;
   hostName?: string;

@@ -134,8 +134,7 @@ export class TsLog78 {
         summary,
         message,
         logLevel: "DEBUG",
-        logLevelNumber: level,
-        timestamp: new Date() // 添加 timestamp
+        logLevelNumber: level
       }
     });
     await this.processLog(logEntry);
@@ -153,8 +152,7 @@ export class TsLog78 {
         summary,
         message,
         logLevel: "INFO",
-        logLevelNumber: level,
-        timestamp: new Date() // 添加 timestamp
+        logLevelNumber: level
       }
     });
     await this.processLog(logEntry);
@@ -172,8 +170,7 @@ export class TsLog78 {
         summary,
         message,
         logLevel: "WARN",
-        logLevelNumber: level,
-        timestamp: new Date() // 添加 timestamp
+        logLevelNumber: level
       }
     });
     await this.processLog(logEntry);
@@ -191,8 +188,7 @@ export class TsLog78 {
         summary,
         message,
         logLevel: "ERROR",
-        logLevelNumber: level,
-        timestamp: new Date()
+        logLevelNumber: level
       }
     });
     await this.processLog(logEntry);
@@ -209,7 +205,6 @@ export class TsLog78 {
       basic: {
         message,
         logLevelNumber: level,
-        timestamp: new Date(),
         logLevel: this.getLevelString(level),
         serviceName: key1,
         serviceObj: key2,
