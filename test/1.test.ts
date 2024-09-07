@@ -31,7 +31,7 @@ describe('TsLog78 Tests', () => {
     log.LevelFile = 0;
     log.LevelConsole = 0;
 
-    await log.INFOentry(testEntry);
+    await log.infoEntry(testEntry);
 
     log.LevelApi = 70;
     log.LevelFile = 50;
@@ -68,7 +68,7 @@ describe('TsLog78 Tests', () => {
       }
     });
 
-    await log.INFOentry(customEntry);
+    await log.infoEntry(customEntry);
 
     expect(true).toBe(true); // 如果没有抛出异常，则测试通过
   });
@@ -87,7 +87,7 @@ describe('TsLog78 Tests', () => {
 
     const error = new Error("Test exception");
 
-    await log.ERRORentry(customEntry);
+    await log.errorEntry(customEntry);
 
     expect(true).toBe(true); // 如果没有抛出异常，则测试通过
   });
@@ -113,7 +113,7 @@ describe('TsLog78 Tests', () => {
     });
 
     //can't work to github
-    // await log.INFOentry(testEntry);
+    // await log.infoEntry(testEntry);
 
     // await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -138,10 +138,20 @@ describe('TsLog78 Tests', () => {
       }
     });
 
-    await log.INFOentry(testEntry);
+    await log.infoEntry(testEntry);
 
     // 注意：在 TypeScript/JavaScript 中，我们可能需要使用 Node.js 的 fs 模块来检查文件系统
     // 这里我们只是确保没有异常抛出
+    expect(true).toBe(true);
+  });
+
+  test('TestErrorWithException', async () => {
+    const log = TsLog78.Instance;
+
+    const error = new Error("Test exception");
+  
+    await log.error(error);
+
     expect(true).toBe(true);
   });
 });

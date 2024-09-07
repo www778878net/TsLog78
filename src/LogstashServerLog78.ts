@@ -1,7 +1,7 @@
 import axios from 'axios';
 import IServerLog78 from "./IServerLog78";
-import  LogEntry  from './LogEntry';
-import TsLog78 from './TsLog78'; // 使用默认导入
+import LogEntry from './LogEntry';
+import TsLog78 from './TsLog78';
 
 export default class LogstashServerLog78 implements IServerLog78 {
     serverUrl: string;
@@ -23,7 +23,7 @@ export default class LogstashServerLog78 implements IServerLog78 {
             });
 
             if (response.status >= 200 && response.status < 300) {
-                await this.logger.DEBUGentry(new LogEntry({
+                await this.logger.debugEntry(new LogEntry({
                     basic: {
                         summary: "Logstash log sent successfully",
                         message: "Logstash Success",
@@ -34,7 +34,7 @@ export default class LogstashServerLog78 implements IServerLog78 {
                 }));
             } else {
                 const errorMessage = `Failed to send log to Logstash. Status code: ${response.status}`;
-                await this.logger.ERRORentry(new LogEntry({
+                await this.logger.errorEntry(new LogEntry({
                     basic: {
                         summary: errorMessage,
                         message: "Logstash Error",
@@ -53,7 +53,7 @@ export default class LogstashServerLog78 implements IServerLog78 {
             });
         } catch (ex: unknown) {
             const errorMessage = `Error sending log to Logstash: ${ex instanceof Error ? ex.message : 'Unknown error'}`;
-            await this.logger.ERRORentry(new LogEntry({
+            await this.logger.errorEntry(new LogEntry({
                 basic: {
                     summary: errorMessage,
                     message: "Logstash Exception",
