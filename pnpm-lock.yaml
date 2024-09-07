@@ -8,9 +8,18 @@ importers:
 
   .:
     dependencies:
+      '@types/reflect-metadata':
+        specifier: ^0.1.0
+        version: 0.1.0
       axios:
         specifier: ^1.7.7
         version: 1.7.7
+      inversify:
+        specifier: ^6.0.2
+        version: 6.0.2
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
       winston:
         specifier: ^3.14.2
         version: 3.14.2
@@ -447,6 +456,10 @@ packages:
 
   '@types/node@22.5.4':
     resolution: {integrity: sha512-FDuKUJQm/ju9fT/SeX/6+gBzoPzlVCzfzmGkwKvRHQVxi4BntVbyIwf6a4Xn62mrvndLiml6z/UBXIdEVjQLXg==}
+
+  '@types/reflect-metadata@0.1.0':
+    resolution: {integrity: sha512-bXltFLY3qhzCnVYP5iUpeSICagQ8rc9K2liS+8M0lBcz54BHs3O6W5UvqespVSuebo1BXLi+/y9ioELAW9SC2A==}
+    deprecated: This is a stub types definition for reflect-metadata (https://github.com/rbuckton/ReflectDecorators). reflect-metadata provides its own type definitions, so you don't need @types/reflect-metadata installed!
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
@@ -1313,6 +1326,9 @@ packages:
     resolution: {integrity: sha512-agE4QfB2Lkp9uICn7BAqoscw4SZP9kTE2hxiFI3jBPmXJfdqiahTbUuKGsMoN2GtqL9AxhYioAcVvgsb1HvRbA==}
     engines: {node: '>= 0.10'}
 
+  inversify@6.0.2:
+    resolution: {integrity: sha512-i9m8j/7YIv4mDuYXUAcrpKPSaju/CIly9AHK5jvCBeoiM/2KEsuCQTTP+rzSWWpLYWRukdXFSl6ZTk2/uumbiA==}
+
   is-array-buffer@3.0.4:
     resolution: {integrity: sha512-wcjaerHw0ydZwfhiKbXJWLDY8A7yV7KhjQOpb83hGgGfId/aQa4TOvwyzn2PuswW2gPCYEL/nEAiSVpdOj1lXw==}
     engines: {node: '>= 0.4'}
@@ -1992,6 +2008,9 @@ packages:
   rechoir@0.6.2:
     resolution: {integrity: sha512-HFM8rkZ+i3zrV+4LQjwQ0W+ez98pApMGM3HUrN04j3CqzPOzl9nmP15Y8YXNm8QHGv/eacOVEjqhmWpkRV0NAw==}
     engines: {node: '>= 0.10'}
+
+  reflect-metadata@0.2.2:
+    resolution: {integrity: sha512-urBwgfrvVP/eAyXx4hluJivBKzuEbSQs9rKWCrCkbSxNv8mxPcUZKeuoF3Uy4mJl3Lwprp6yy5/39VWigZ4K6Q==}
 
   reflect.getprototypeof@1.0.6:
     resolution: {integrity: sha512-fmfw4XgoDke3kdI6h4xcUz1dG8uaiv5q9gcEwLS4Pnth2kxT+GZ7YehS1JTMGBQmtV7Y4GFGbs2re2NqhdozUg==}
@@ -2941,6 +2960,10 @@ snapshots:
   '@types/node@22.5.4':
     dependencies:
       undici-types: 6.19.8
+
+  '@types/reflect-metadata@0.1.0':
+    dependencies:
+      reflect-metadata: 0.2.2
 
   '@types/stack-utils@2.0.3': {}
 
@@ -3988,6 +4011,8 @@ snapshots:
 
   interpret@1.4.0: {}
 
+  inversify@6.0.2: {}
+
   is-array-buffer@3.0.4:
     dependencies:
       call-bind: 1.0.7
@@ -4861,6 +4886,8 @@ snapshots:
   rechoir@0.6.2:
     dependencies:
       resolve: 1.22.8
+
+  reflect-metadata@0.2.2: {}
 
   reflect.getprototypeof@1.0.6:
     dependencies:

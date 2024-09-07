@@ -20,6 +20,7 @@ import IConsoleLog78 from "./IConsoleLog78";
 import IFileLog78 from "./IFileLog78";
 import IServerLog78 from "./IServerLog78";
 import  LogEntry  from './LogEntry';
+import { injectable } from "inversify";
 
 /**
  * 日志类 
@@ -29,6 +30,7 @@ import  LogEntry  from './LogEntry';
  * .分级:只对重要级别的日志进行详细记录和分析(现在基本可以了)
  * .轮转:定期轮转日志文件(文件做了) 服务器要清或转
  *  */
+@injectable()
 export class TsLog78 {
   public debugKind: Set<string> = new Set();
   public LevelFile: number = 50;
