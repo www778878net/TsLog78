@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+import "reflect-metadata";
 import { TsLog78 } from './TsLog78';
 import ConsoleLog78 from './ConsoleLog78';
 import IConsoleLog78 from './IConsoleLog78';
