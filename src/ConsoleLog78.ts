@@ -16,7 +16,7 @@
 
 import  winston from 'winston';
 import IConsoleLog78 from "./IConsoleLog78";
-import { LogEntry } from './LogEntry';
+import  LogEntry  from './LogEntry';
 
 export default class ConsoleLog78 implements IConsoleLog78 {
     private logger: winston.Logger;

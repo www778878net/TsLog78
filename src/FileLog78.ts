@@ -18,7 +18,7 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 import * as fs from 'fs';
 import * as path from 'path';
 import IFileLog78 from "./IFileLog78";
-import { LogEntry } from './LogEntry';
+import  LogEntry  from './LogEntry';
 
 // 实现 FileLog78 类
 export default class FileLog78 implements IFileLog78 {

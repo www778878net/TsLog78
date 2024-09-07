@@ -14,7 +14,7 @@
 
 // src/IServerLog78.ts
 
-import { LogEntry } from './LogEntry';
+import  LogEntry  from './LogEntry';
 
 export default interface IServerLog78 {
     serverUrl: string;

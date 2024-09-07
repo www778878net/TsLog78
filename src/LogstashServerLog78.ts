@@ -1,6 +1,6 @@
 import axios from 'axios';
 import IServerLog78 from "./IServerLog78";
-import { LogEntry } from './LogEntry';
+import  LogEntry  from './LogEntry';
 import TsLog78 from './TsLog78'; // 使用默认导入
 
 export default class LogstashServerLog78 implements IServerLog78 {

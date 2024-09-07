@@ -1,4 +1,4 @@
-import { LogEntry } from './LogEntry';
+import  LogEntry  from './LogEntry';
 
 // Copyright 2024 frieda
 //

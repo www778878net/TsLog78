@@ -1,5 +1,5 @@
 ﻿import { TsLog78 } from '../src/TsLog78';
-import { LogEntry } from '../src/LogEntry';
+import  LogEntry  from '../src/LogEntry';
 import FileLog78 from '../src/FileLog78';
 import ConsoleLog78 from '../src/ConsoleLog78';
 import LogstashServerLog78 from '../src/LogstashServerLog78';
