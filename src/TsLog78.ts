@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 // Copyright 2024 frieda
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
