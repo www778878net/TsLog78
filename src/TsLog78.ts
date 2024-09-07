@@ -75,7 +75,7 @@ export class TsLog78 {
 
   private async processLog(logEntry: LogEntry): Promise<void> {
     if (!logEntry.basic) {
-      await this.ERRORentry(new LogEntry({ 
+      await this.errorEntry(new LogEntry({ 
         basic: { 
           summary: "Error: LogEntry or LogEntry.basic is null",
           message: "Invalid log entry",
@@ -126,75 +126,123 @@ export class TsLog78 {
     return keysToCheck.some(key => key && this.debugKind.has(key.toLowerCase()));
   }
 
-  public async DEBUGentry(logEntry: LogEntry, level: number = 10): Promise<void> {
+  public async debugEntry(logEntry: LogEntry, level: number = 10): Promise<void> {
     logEntry.basic.logLevel = "DEBUG";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
-  public async DEBUG(summary: string, message: string, level: number = 10): Promise<void> {
-    const logEntry = new LogEntry({
-      basic: {
-        summary,
-        message,
-        logLevel: "DEBUG",
-        logLevelNumber: level
-      }
-    });
+  public async debug(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 10): Promise<void> {
+    let logEntry: LogEntry;
+
+    if (summaryOrLogEntry instanceof LogEntry) {
+      logEntry = summaryOrLogEntry;
+      logEntry.basic.logLevel = "DEBUG";
+      logEntry.basic.logLevelNumber = typeof messageOrLevel === 'number' ? messageOrLevel : level;
+    } else {
+      logEntry = new LogEntry({
+        basic: {
+          summary: summaryOrLogEntry,
+          message: typeof messageOrLevel === 'string' ? messageOrLevel : summaryOrLogEntry,
+          logLevel: "DEBUG",
+          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+        }
+      });
+    }
+
     await this.processLog(logEntry);
   }
 
-  public async INFOentry(logEntry: LogEntry, level: number = 30): Promise<void> {
+  public async infoEntry(logEntry: LogEntry, level: number = 30): Promise<void> {
     logEntry.basic.logLevel = "INFO";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
-  public async INFO(summary: string, message: string, level: number = 30): Promise<void> {
-    const logEntry = new LogEntry({
-      basic: {
-        summary,
-        message,
-        logLevel: "INFO",
-        logLevelNumber: level
-      }
-    });
+  public async info(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 30): Promise<void> {
+    let logEntry: LogEntry;
+
+    if (summaryOrLogEntry instanceof LogEntry) {
+      logEntry = summaryOrLogEntry;
+      logEntry.basic.logLevel = "INFO";
+      logEntry.basic.logLevelNumber = typeof messageOrLevel === 'number' ? messageOrLevel : level;
+    } else {
+      logEntry = new LogEntry({
+        basic: {
+          summary: summaryOrLogEntry,
+          message: typeof messageOrLevel === 'string' ? messageOrLevel : summaryOrLogEntry,
+          logLevel: "INFO",
+          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+        }
+      });
+    }
+
     await this.processLog(logEntry);
   }
 
-  public async WARNentry(logEntry: LogEntry, level: number = 50): Promise<void> {
+  public async warnEntry(logEntry: LogEntry, level: number = 50): Promise<void> {
     logEntry.basic.logLevel = "WARN";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
-  public async WARN(summary: string, message: string, level: number = 50): Promise<void> {
-    const logEntry = new LogEntry({
-      basic: {
-        summary,
-        message,
-        logLevel: "WARN",
-        logLevelNumber: level
-      }
-    });
+  public async warn(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 50): Promise<void> {
+    let logEntry: LogEntry;
+
+    if (summaryOrLogEntry instanceof LogEntry) {
+      logEntry = summaryOrLogEntry;
+      logEntry.basic.logLevel = "WARN";
+      logEntry.basic.logLevelNumber = typeof messageOrLevel === 'number' ? messageOrLevel : level;
+    } else {
+      logEntry = new LogEntry({
+        basic: {
+          summary: summaryOrLogEntry,
+          message: typeof messageOrLevel === 'string' ? messageOrLevel : summaryOrLogEntry,
+          logLevel: "WARN",
+          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+        }
+      });
+    }
+
     await this.processLog(logEntry);
   }
 
-  public async ERRORentry(logEntry: LogEntry, level: number = 60): Promise<void> {
+  public async errorEntry(logEntry: LogEntry, level: number = 60): Promise<void> {
     logEntry.basic.logLevel = "ERROR";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
-  public async ERROR(summary: string, message: string, level: number = 60): Promise<void> {
-    const logEntry = new LogEntry({
-      basic: {
-        summary,
-        message,
-        logLevel: "ERROR",
-        logLevelNumber: level
-      }
-    });
+  public async error(errorOrSummary: Error | string, messageOrLevel?: string | number, level: number = 60): Promise<void> {
+    let logEntry: LogEntry;
+
+    if (errorOrSummary instanceof Error) {
+      // 处理 Error 对象
+      logEntry = new LogEntry({
+        basic: {
+          summary: errorOrSummary.message,
+          message: `${messageOrLevel} - ${errorOrSummary.name}: ${errorOrSummary.message}`,
+          logLevel: "ERROR",
+          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+        },
+        error: {
+          errorType: errorOrSummary.name,
+          errorMessage: errorOrSummary.message,
+          errorStackTrace: errorOrSummary.stack
+        }
+      });
+    } else {
+      // 处理 summary 和 message
+      logEntry = new LogEntry({
+        basic: {
+          summary: errorOrSummary,
+          message: typeof messageOrLevel === 'string' ? messageOrLevel : errorOrSummary,
+          logLevel: "ERROR",
+          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+        }
+      });
+    }
+
     await this.processLog(logEntry);
   }
 
@@ -203,26 +251,8 @@ export class TsLog78 {
     await this.processLog(logEntry);
   }
 
-  // 使用字符串参数的方法
-  public async log(message: string, level: number = 50, key1: string = '', key2: string = '', key3: string = '', content: string = '', key4: string = '', key5: string = '', key6: string = ''): Promise<void> {
-    const logEntry = new LogEntry({
-      basic: {
-        message,
-        logLevelNumber: level,
-        logLevel: this.getLevelString(level),
-        serviceName: key1,
-        serviceObj: key2,
-        serviceFun: key3,
-        userId: key4,
-        userName: key5
-      },
-      additionalProperties: {
-        content,
-        key6
-      }
-    });
-    await this.processLog(logEntry);
-  }
+ 
+  
 
   // 辅助方法，用于获取日志级别字符串
   private getLevelString(level: number): string {
