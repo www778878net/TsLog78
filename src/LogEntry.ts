@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 
-export class LogEntry {
+export default class LogEntry {
   basic: BasicInfo = new BasicInfo();
   event: EventInfo = new EventInfo();
   error: ErrorInfo = new ErrorInfo();

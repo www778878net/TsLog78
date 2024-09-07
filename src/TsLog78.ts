@@ -19,7 +19,7 @@ import ConsoleLog78 from "./ConsoleLog78";
 import IConsoleLog78 from "./IConsoleLog78";
 import IFileLog78 from "./IFileLog78";
 import IServerLog78 from "./IServerLog78";
-import { LogEntry } from './LogEntry';
+import  LogEntry  from './LogEntry';
 
 /**
  * 日志类 
