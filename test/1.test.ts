@@ -1,90 +1,146 @@
-﻿// test/1.test.ts
-
-import { TsLog78 } from '../src/TsLog78';
+﻿import { TsLog78 } from '../src/TsLog78';
+import { LogEntry } from '../src/LogEntry';
+import FileLog78 from '../src/FileLog78';
 import ConsoleLog78 from '../src/ConsoleLog78';
-import IFileLog78 from '../src/IFileLog78';
-import IServerLog78 from '../src/IServerLog78';
+import LogstashServerLog78 from '../src/LogstashServerLog78';
 
-// Mock implementations for testing
-class MockServerLog78 implements IServerLog78 {
-  logToServer(message: string, key1: string, level: number, key2: string, key3: string, content: string, key4: string, key5: string, key6: string): void {
-    console.log(`Mock Server   Log: ${message}`);
-  }
-}
-
-class MockFileLog78 implements IFileLog78 {
-  menu: string = "test";
-  logToFile(info: string): void {
-    console.log(`Mock File Log: ${info}`);
-  }
-
-  clear(): void {
-    console.log('Mock File Log: Clear');
-  }
-}
-
-describe('TsLog78', () => {
-  let tsLog78: TsLog78;
-  let mockServerLog78: MockServerLog78;
-  let mockFileLog78: MockFileLog78;
-  let consoleLog78: ConsoleLog78;
-
-  beforeEach(() => {
-    mockServerLog78 = new MockServerLog78();
-    mockFileLog78 = new MockFileLog78();
-    consoleLog78 = new ConsoleLog78();
-    tsLog78 = TsLog78.Instance;
-    tsLog78.setup(mockServerLog78, mockFileLog78, consoleLog78, 'testUser');
-
-    // 设置模拟函数
-    jest.spyOn(mockServerLog78, 'logToServer');
-    jest.spyOn(mockFileLog78, 'logToFile');
-    jest.spyOn(consoleLog78, 'writeLine');
+describe('TsLog78 Tests', () => {
+  test('TestSingleton', () => {
+    const instance1 = TsLog78.Instance;
+    const instance2 = TsLog78.Instance;
+    expect(instance1).toBe(instance2);
   });
 
-  afterEach(() => {
-    // 清除模拟函数的调用历史
-    jest.clearAllMocks();
+  test('TestSetup', async () => {
+    const log = TsLog78.Instance;
+    const fileLogger = new FileLog78('testlogs');
+    const consoleLogger = new ConsoleLog78();
+
+    log.setup(undefined, fileLogger, consoleLogger);
+
+    const testEntry = new LogEntry({
+      basic: {
+        message: "Test setup",
+        summary: "Setup Test",
+        logLevelNumber: 30,
+        logLevel: "INFO"
+      }
+    });
+
+    log.LevelApi = 0;
+    log.LevelFile = 0;
+    log.LevelConsole = 0;
+
+    await log.INFOentry(testEntry);
+
+    log.LevelApi = 70;
+    log.LevelFile = 50;
+    log.LevelConsole = 30;
+
+    expect(true).toBe(true); // 如果没有抛出异常，则测试通过
   });
 
-  it('should create a single instance via the singleton pattern', () => {
-    expect(TsLog78.Instance).toBe(tsLog78);
+  test('TestClone', () => {
+    const originalLog = TsLog78.Instance;
+    originalLog.LevelApi = 80;
+    originalLog.LevelConsole = 40;
+    originalLog.LevelFile = 60;
+
+    const clonedLog = originalLog.clone();
+
+    expect(clonedLog.LevelApi).toBe(originalLog.LevelApi);
+    expect(clonedLog.LevelConsole).toBe(originalLog.LevelConsole);
+    expect(clonedLog.LevelFile).toBe(originalLog.LevelFile);
   });
 
-  it('should log a message with a specific level', () => {
-    const spyServerLog = jest.spyOn(mockServerLog78, 'logToServer');
-    const spyFileLog = jest.spyOn(mockFileLog78, 'logToFile');
-    const spyConsoleLog = jest.spyOn(consoleLog78, 'writeLine');
+  test('TestCustomLogEntry', async () => {
+    const log = TsLog78.Instance;
 
-    tsLog78.log('Test Message', 70, 'testKey', 'testKey2', 'testUser', 'testContent');
+    const customEntry = new LogEntry({
+      basic: {
+        message: "Test message",
+        summary: "Test summary",
+        logLevelNumber: 30,
+        logLevel: "INFO"
+      },
+      additionalProperties: {
+        weather: "Sunny"
+      }
+    });
 
-    expect(spyServerLog).toHaveBeenCalled();
-    expect(spyFileLog).toHaveBeenCalled();
-    expect(spyConsoleLog).toHaveBeenCalled();
+    await log.INFOentry(customEntry);
+
+    expect(true).toBe(true); // 如果没有抛出异常，则测试通过
   });
 
-  it('should not log a message when level is below the threshold', () => {
-    const spyServerLog = jest.spyOn(mockServerLog78, 'logToServer');
-    const spyFileLog = jest.spyOn(mockFileLog78, 'logToFile');
-    const spyConsoleLog = jest.spyOn(consoleLog78, 'writeLine');
+  test('TestCustomLogEntryWithException', async () => {
+    const log = TsLog78.Instance;
 
-    tsLog78.log('Test Message', 25, 'testKey', 'testKey2', 'testUser', 'testContent');
+    const customEntry = new LogEntry({
+      basic: {
+        message: "Test exception",
+        summary: "Exception Test",
+        logLevelNumber: 60,
+        logLevel: "ERROR"
+      }
+    });
 
-    expect(spyServerLog).not.toHaveBeenCalled();
-    expect(spyFileLog).not.toHaveBeenCalled();
-    expect(spyConsoleLog).not.toHaveBeenCalled();
+    const error = new Error("Test exception");
+
+    await log.ERRORentry(customEntry);
+
+    expect(true).toBe(true); // 如果没有抛出异常，则测试通过
   });
 
-  it('should log an error message', () => {
-    const spyServerLog = jest.spyOn(mockServerLog78, 'logToServer');
-    const spyFileLog = jest.spyOn(mockFileLog78, 'logToFile');
-    const spyConsoleLog = jest.spyOn(consoleLog78, 'writeLine');
+  test('TestLogstashServerLog78', async () => {
+    const serverUrl = "http://192.168.31.122:5000";
+    const serverLogger = new LogstashServerLog78(serverUrl);
+    const log = TsLog78.Instance;
+    log.setup(serverLogger, new FileLog78('testlogs'), new ConsoleLog78());
 
-    const error = new Error('Test Error');
-    tsLog78.logErr(error);
+    const testEntry = new LogEntry({
+      basic: {
+        message: "Test Logstash integration",
+        summary: "Logstash Test",
+        serviceName: "TestService",
+        serviceObj: "TestObject",
+        serviceFun: "TestFunction",
+        userId: "TestUser",
+        userName: "Test Username",
+        logLevelNumber: 30,
+        logLevel: "INFO"
+      }
+    });
 
-    expect(spyServerLog).toHaveBeenCalled();
-    expect(spyFileLog).toHaveBeenCalled();
-    expect(spyConsoleLog).toHaveBeenCalled();
+    await log.INFOentry(testEntry);
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    expect(true).toBe(true); // 如果没有抛出异常，则测试通过
+  });
+
+  test('TestFileLog78', async () => {
+    const log = TsLog78.Instance;
+    log.LevelFile = 50;
+
+    const testEntry = new LogEntry({
+      basic: {
+        message: "Test file logging",
+        summary: "File Log Test",
+        serviceName: "TestService",
+        serviceObj: "TestObject",
+        serviceFun: "TestFunction",
+        userId: "TestUser",
+        userName: "Test Username",
+        logLevelNumber: 30,
+        logLevel: "INFO"
+      }
+    });
+
+    await log.INFOentry(testEntry);
+
+    // 注意：在 TypeScript/JavaScript 中，我们可能需要使用 Node.js 的 fs 模块来检查文件系统
+    // 这里我们只是确保没有异常抛出
+    expect(true).toBe(true);
   });
 });

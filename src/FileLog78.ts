@@ -13,6 +13,8 @@
 // limitations under the License.
 
 import * as winston from 'winston';
+import 'winston-daily-rotate-file';
+import DailyRotateFile from 'winston-daily-rotate-file';
 import * as fs from 'fs';
 import * as path from 'path';
 import IFileLog78 from "./IFileLog78";
@@ -26,22 +28,28 @@ export default class FileLog78 implements IFileLog78 {
     static logpath: string = "/"; // 静态属性，与C#版本保持一致
 
     // 构造函数
-    constructor(menu: string = "logs", filename: string = "7788_.log") {
+    constructor(menu: string = "logs", filename: string = "7788_%DATE%.log") {
         this.menu = menu;
-        this.file = path.join(menu, filename);
+        this.file = filename;
+        
+        const transport = new DailyRotateFile({
+            filename: this.file,
+            dirname: this.menu,
+            datePattern: 'YYYY-MM-DD',
+            maxSize: '5m',
+            maxFiles: '5d',
+            format: winston.format.json()
+        });
+
         this.logger = winston.createLogger({
             level: 'info',
-            format: winston.format.json(),
-            transports: [
-                new winston.transports.File({ 
-                    filename: this.file,
-                    dirname: this.menu,
-                    maxsize: 5242880, // 5MB
-                    maxFiles: 5,
-                    tailable: true
-                })
-            ]
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.json()
+            ),
+            transports: [transport]
         });
+
         this.clear(); // 在构造函数中调用clear，与C#版本保持一致
     }
 
@@ -61,15 +69,37 @@ export default class FileLog78 implements IFileLog78 {
 
     // 清除日志的方法
     clear(): void {
-        const idate = new Date().getDate() % 3;
-        for (let i = 0; i < 3; i++) {
-            if (i === idate) continue;
-            const filePath = path.join(this.menu, `7788_${i}.log`);
-            fs.unlink(filePath, (err) => {
-                if (err && err.code !== 'ENOENT') {
-                    console.error(`Error deleting file ${filePath}: ${err}`);
+        const today = new Date();
+        const idate = today.getDate() % 3;
+        
+        fs.readdir(this.menu, (err, files) => {
+            if (err) {
+                console.error(`Error reading directory: ${err}`);
+                return;
+            }
+
+            files.forEach(file => {
+                if (file.startsWith('7788_') && file.endsWith('.log')) {
+                    const filePath = path.join(this.menu, file);
+                    const fileDate = this.getDateFromFilename(file);
+                    
+                    if (fileDate && (today.getTime() - fileDate.getTime() > 3 * 24 * 60 * 60 * 1000)) {
+                        fs.unlink(filePath, (err) => {
+                            if (err) {
+                                console.error(`Error deleting file ${filePath}: ${err}`);
+                            }
+                        });
+                    }
                 }
             });
+        });
+    }
+
+    private getDateFromFilename(filename: string): Date | null {
+        const match = filename.match(/7788_(\d{4}-\d{2}-\d{2})/);
+        if (match) {
+            return new Date(match[1]);
         }
+        return null;
     }
 }
