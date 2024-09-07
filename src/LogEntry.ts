@@ -1,3 +1,5 @@
+import { randomUUID } from "crypto";
+
 export class LogEntry {
   basic: BasicInfo = new BasicInfo();
   event: EventInfo = new EventInfo();
@@ -49,7 +51,7 @@ export class BasicInfo {
 }
 
 export class EventInfo {
-  eventId: string = crypto.randomUUID();
+  eventId: string = randomUUID();
   eventKind?: string;
   eventCategory?: string;
   eventAction?: string;
@@ -59,6 +61,7 @@ export class EventInfo {
 }
 
 export class ErrorInfo {
+
   errorType?: string;
   errorMessage?: string;
   errorStackTrace?: string;
