@@ -19,4 +19,5 @@ import { LogEntry } from './LogEntry';
       file: string;
       logToFile(logEntry: LogEntry): void;
       clear(): void;
+
     }

@@ -5,3 +5,7 @@
 /.vs
 /node_modules
 dist/
+# 排除所有以 .log 结尾的文件
+*.log
+testlogs/
+logs/
