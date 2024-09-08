@@ -123,7 +123,7 @@ export class TsLog78 {
    * 设置AI分析用的日志文件
    */
   private setupAILog() {
-    this.aiLogFile = new FileLog78('ai_debug.log', 'debug', true);
+    this.aiLogFile = new FileLog78('ai_debug.log', 'logs', true);
   }
 
   /**
