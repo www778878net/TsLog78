@@ -30,40 +30,36 @@ import * as process from 'process';
  *  */
 @injectable()
 export class TsLog78 {
-  /* AI提示词
-  - Take a deep breath and work on this problem step-by-step
-  - 本项目背景介绍
-  . 本项目是基于typescript的日志记录库，主要用于记录和分析日志
-  . 通过LeaveFile LevelConsole LevelApi 确认当前日志级别是否需要输出文件 控制台或API
-  . 通过DebugEntry 确认当前日志级别是否需要输出文件 控制台或API
-  . detail10 debug20 info30 warn50 error60 日志级别会有默认的级别 可以调整本次的行为
-  . 读取env 确认当前环境 通过这个修改leaveFile LevelConsole LevelApi 的值
-  . 默认生产环境：error打印控制台，info以上打印文件，warn以上打印API 
-  . 开发环境:debug以上打印控制台，debug以上打印文件，warn以上打印API
-  . 测试环境:error打印控制台，debug以上打印文件，warn以上打印API
-  . 开发环境特别增加一个功能全部打印文件方便AI调试 每次新开清空文件 文件名debug.log
+  /** 用于存储需要调试的特定键 */
+  private debugKind: Set<string> = new Set();
 
-  * 后续加上:增不处理
- * .采样:随机 或条件 减少日志量
- * .集合:可以按时间段、用户、事件类型等进行聚合
- * .分级:只对重要级别的日志进行详细记录和分析(现在基本可以了)
- * .轮转:定期轮转日志文件(文件做了) 服务器要清或转
-  */
+  /** 文件日志的最低级别 */
+  private levelFile: number = 30;
 
-  //读取env 确认当前
-  //默认生产环境：
-  public debugKind: Set<string> = new Set();
-  public LevelFile: number = 30;
-  public LevelConsole: number = 60;
-  public LevelApi: number = 50;
+  /** 控制台日志的最低级别 */
+  private levelConsole: number = 60;
+
+  /** API日志的最低级别 */
+  private levelApi: number = 50;
+
+  /** 服务器日志记录器 */
   private serverLogger?: IServerLog78;
+
+  /** 控制台日志记录器 */
   private consoleLogger?: IConsoleLog78 = new ConsoleLog78();
+
+  /** 文件日志记录器 */
   private fileLogger?: IFileLog78 = new FileLog78();
 
+  /** 用于特定调试的日志条目 */
   public DebugEntry?: LogEntry;
 
+  /** 单例实例 */
   private static instance?: TsLog78;
 
+  /**
+   * 获取TsLog78的单例实例
+   */
   public static get Instance(): TsLog78 {
     if (!TsLog78.instance) {
       TsLog78.instance = new TsLog78();
@@ -72,57 +68,94 @@ export class TsLog78 {
     return TsLog78.instance;
   }
 
+  /** 是否处于开发模式 */
+  private isDevMode: boolean = false;
+
+  /** AI分析用的日志文件 */
+  private aiLogFile?: IFileLog78;
+
   constructor() {
     this.setEnvironment();
   }
 
+  /**
+   * 设置运行环境并初始化相应的日志级别
+   */
   private setEnvironment() {
     const env = process.env.NODE_ENV || 'production';
-    switch (env) {
-      case 'development':
-        this.LevelFile = 10; // 全部打印文件
-        this.LevelConsole = 20; // debug以上打印控制台
-        this.LevelApi = 50; // warn以上打印API
-        // 开发环境特别增加一个功能全部打印文件方便AI调试
-        this.setupDebugLog();
-        break;
-      case 'test':
-        this.LevelFile = 20; // debug以上打印文件
-        this.LevelConsole = 60; // error打印控制台
-        this.LevelApi = 50; // warn以上打印API
-        break;
-      default: // production
-        this.LevelFile = 30; // info以上打印文件
-        this.LevelConsole = 60; // error打印控制台
-        this.LevelApi = 50; // warn以上打印API
+    this.isDevMode = env === 'development';
+    this.setupLevelByEnv(env);
+    if (this.isDevMode) {
+      this.setupAILog();
     }
   }
 
-  private setupDebugLog() {
-    // 实现开发环境下的debug.log文件
-    // 这里需要实现一个新的文件日志记录器，专门用于debug.log
-    // 每次启动时清空文件内容
-    const debugFileLogger = new FileLog78('debug.log', 'debug');
-    this.fileLogger = debugFileLogger;
+  /**
+   * 根据环境设置日志级别
+   * @param env 环境名称
+   */
+  private setupLevelByEnv(env: string) {
+    switch (env) {
+      case 'development':
+        this.setupLevel(20, 20, 50); // debug以上打印文件，debug以上打印控制台，warn以上打印API
+        break;
+      case 'test':
+        this.setupLevel(20, 60, 50); // debug以上打印文件，error打印控制台，warn以上打印API
+        break;
+      default: // production
+        this.setupLevel(30, 60, 50); // info以上打印文件，error打印控制台，warn以上打印API
+    }
   }
 
+  /**
+   * 设置各种日志输出的级别
+   * @param fileLevel 文件日志级别
+   * @param consoleLevel 控制台日志级别
+   * @param apiLevel API日志级别
+   */
+  public setupLevel(fileLevel: number, consoleLevel: number, apiLevel: number) {
+    this.levelFile = fileLevel;
+    this.levelConsole = consoleLevel;
+    this.levelApi = apiLevel;
+  }
+
+  /**
+   * 设置AI分析用的日志文件
+   */
+  private setupAILog() {
+    this.aiLogFile = new FileLog78('ai_debug.log', 'debug', true);
+  }
+
+  /**
+   * 设置日志记录器
+   * @param serverLogger 服务器日志记录器
+   * @param fileLogger 文件日志记录器
+   * @param consoleLogger 控制台日志记录器
+   */
   public setup(serverLogger?: IServerLog78, fileLogger?: IFileLog78, consoleLogger?: IConsoleLog78) {
     this.serverLogger = serverLogger;
-    this.fileLogger = fileLogger;
-    this.consoleLogger = consoleLogger;
+    this.fileLogger = fileLogger || this.fileLogger;
+    this.consoleLogger = consoleLogger || this.consoleLogger;
   }
 
+  /**
+   * 克隆当前日志实例
+   */
   public clone(): TsLog78 {
     const cloned = new TsLog78();
     cloned.serverLogger = this.serverLogger;
     cloned.fileLogger = this.fileLogger;
     cloned.consoleLogger = this.consoleLogger;
-    cloned.LevelApi = this.LevelApi;
-    cloned.LevelConsole = this.LevelConsole;
-    cloned.LevelFile = this.LevelFile;
+    cloned.levelApi = this.levelApi;
+    cloned.levelConsole = this.levelConsole;
+    cloned.levelFile = this.levelFile;
     return cloned;
   }
 
+  /**
+   * 处理日志条目并根据设置输出到相应的目标
+   * @param logEntry 日志条目
+   */
   private async processLog(logEntry: LogEntry): Promise<void> {
     if (!logEntry.basic) {
       await this.errorEntry(new LogEntry({ 
@@ -139,21 +172,31 @@ export class TsLog78 {
 
     const isDebug = this.isDebugKey(logEntry);
 
-    if (isDebug || logEntry.basic.logLevelNumber >= this.LevelApi) {
+    if (isDebug || logEntry.basic.logLevelNumber >= this.levelApi) {
       if (this.serverLogger) {
         await this.serverLogger.logToServer(logEntry);
       }
     }
 
-    if (isDebug || logEntry.basic.logLevelNumber >= this.LevelFile) {
+    if (this.isDevMode) {
+      // 开发环境下，所有日志都写入 AI 分析用的日志文件
+      this.aiLogFile?.logToFile(logEntry);
+    }
+
+    // 正常的文件日志记录逻辑
+    if (isDebug || logEntry.basic.logLevelNumber >= this.levelFile) {
       this.fileLogger?.logToFile(logEntry);
     }
 
-    if (isDebug || logEntry.basic.logLevelNumber >= this.LevelConsole) {
+    if (isDebug || logEntry.basic.logLevelNumber >= this.levelConsole) {
       this.consoleLogger?.writeLine(logEntry);
     }
   }
 
+  /**
+   * 检查日志条目是否匹配调试条件
+   * @param logEntry 日志条目
+   */
   private isDebugKey(logEntry: LogEntry): boolean {
     if (this.DebugEntry?.basic) {
       return !!(
@@ -176,12 +219,23 @@ export class TsLog78 {
     return keysToCheck.some(key => key && this.debugKind.has(key.toLowerCase()));
   }
 
+  /**
+   * 记录DEBUG级别的日志
+   * @param logEntry 日志条目
+   * @param level 日志级别
+   */
   public async debugEntry(logEntry: LogEntry, level: number = 20): Promise<void> {
     logEntry.basic.logLevel = "DEBUG";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录DEBUG级别的日志
+   * @param summaryOrLogEntry 日志摘要或日志条目
+   * @param messageOrLevel 日志消息或日志级别
+   * @param level 日志级别
+   */
   public async debug(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 20): Promise<void> {
     let logEntry: LogEntry;
 
@@ -203,12 +257,23 @@ export class TsLog78 {
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录INFO级别的日志
+   * @param logEntry 日志条目
+   * @param level 日志级别
+   */
   public async infoEntry(logEntry: LogEntry, level: number = 30): Promise<void> {
     logEntry.basic.logLevel = "INFO";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录INFO级别的日志
+   * @param summaryOrLogEntry 日志摘要或日志条目
+   * @param messageOrLevel 日志消息或日志级别
+   * @param level 日志级别
+   */
   public async info(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 30): Promise<void> {
     let logEntry: LogEntry;
 
@@ -230,12 +295,23 @@ export class TsLog78 {
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录WARN级别的日志
+   * @param logEntry 日志条目
+   * @param level 日志级别
+   */
   public async warnEntry(logEntry: LogEntry, level: number = 50): Promise<void> {
     logEntry.basic.logLevel = "WARN";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录WARN级别的日志
+   * @param summaryOrLogEntry 日志摘要或日志条目
+   * @param messageOrLevel 日志消息或日志级别
+   * @param level 日志级别
+   */
   public async warn(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 50): Promise<void> {
     let logEntry: LogEntry;
 
@@ -257,12 +333,23 @@ export class TsLog78 {
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录ERROR级别的日志
+   * @param logEntry 日志条目
+   * @param level 日志级别
+   */
   public async errorEntry(logEntry: LogEntry, level: number = 60): Promise<void> {
     logEntry.basic.logLevel = "ERROR";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录ERROR级别的日志
+   * @param errorOrSummary 错误对象或日志摘要
+   * @param messageOrLevel 日志消息或日志级别
+   * @param level 日志级别
+   */
   public async error(errorOrSummary: Error | string, messageOrLevel?: string | number, level: number = 60): Promise<void> {
     let logEntry: LogEntry;
 
@@ -296,17 +383,31 @@ export class TsLog78 {
     await this.processLog(logEntry);
   }
 
-  // 使用 LogEntry 对象的方法
+  /**
+   * 使用 LogEntry 对象的方法
+   * @param logEntry 日志条目
+   */
   public async logEntry(logEntry: LogEntry): Promise<void> {
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录DETAIL级别的日志
+   * @param logEntry 日志条目
+   * @param level 日志级别
+   */
   public async detailEntry(logEntry: LogEntry, level: number = 10): Promise<void> {
     logEntry.basic.logLevel = "DETAIL";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录DETAIL级别的日志
+   * @param summaryOrLogEntry 日志摘要或日志条目
+   * @param messageOrLevel 日志消息或日志级别
+   * @param level 日志级别
+   */
   public async detail(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 10): Promise<void> {
     let logEntry: LogEntry;
 
@@ -327,8 +428,6 @@ export class TsLog78 {
 
     await this.processLog(logEntry);
   }
-
- 
 } // 类定义结束
 
 // 将默认导出移到类定义的外部

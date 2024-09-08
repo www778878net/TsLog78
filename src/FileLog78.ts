@@ -22,84 +22,121 @@ import  LogEntry  from './LogEntry';
 
 // 实现 FileLog78 类
 export default class FileLog78 implements IFileLog78 {
-    private menu: string;
-    private file: string;
-    private logger: winston.Logger;
-    static logpath: string = "/"; // 静态属性，与C#版本保持一致
+	/** 是否为AI日志 */
+	private isAILog: boolean;
 
-    // 修改后的构造函数
-    constructor(filename: string = "7788_%DATE%.log", menu: string = "logs") {
-        this.file = filename;
-        this.menu = menu;
-        
-        const transport = new DailyRotateFile({
-            filename: this.file,
-            dirname: this.menu,
-            datePattern: 'YYYY-MM-DD',
-            maxSize: '5m',
-            maxFiles: '5d',
-            format: winston.format.json()
-        });
+	/** 日志文件目录 */
+	private menu: string;
 
-        this.logger = winston.createLogger({
-            level: 'info',
-            format: winston.format.combine(
-                winston.format.timestamp(),
-                winston.format.json()
-            ),
-            transports: [transport]
-        });
+	/** 日志文件名 */
+	private file: string;
 
-        this.clear(); // 在构造函数中调用clear，与C#版本保持一致
-    }
+	/** Winston日志记录器 */
+	private logger: winston.Logger;
 
-    // 实现接口方法
-    logToFile(logEntry: LogEntry): void {
-        try {
+	/** 日志路径 */
+	static logpath: string = "/";
+
+	/**
+	 * 创建FileLog78实例
+	 * @param filename 日志文件名
+	 * @param menu 日志文件目录
+	 * @param isAILog 是否为AI日志
+	 */
+	constructor(filename: string = "7788_%DATE%.log", menu: string = "logs", isAILog: boolean = false) {
+		this.file = filename;
+		this.menu = menu;
+		this.isAILog = isAILog;
+		
+		const transport = new DailyRotateFile({
+			filename: this.file,
+			dirname: this.menu,
+			datePattern: 'YYYY-MM-DD',
+			maxSize: '5m',
+			maxFiles: '5d',
+			format: winston.format.json()
+		});
+
+		this.logger = winston.createLogger({
+			level: 'info',
+			format: winston.format.combine(
+				winston.format.timestamp(),
+				winston.format.json()
+			),
+			transports: [transport]
+		});
+
+		if (this.isAILog) {
+			this.clearAILog();
+		} else {
+			this.clear();
+		}
+	}
+
+	/**
+	 * 将日志条目写入文件
+	 * @param logEntry 日志条目
+	 */
+	logToFile(logEntry: LogEntry): void {
+		try {
            
-            this.logger.info(logEntry.toJson());
-            const now = new Date();
-            if (now.getMinutes() === 0 && now.getSeconds() < 10) {
-                this.clear();
-            }
-        } catch (error) {
-            console.error(`写入日志文件时出错: ${error}`);
-        }
-    }
+			this.logger.info(logEntry.toJson());
+			const now = new Date();
+			if (now.getMinutes() === 0 && now.getSeconds() < 10) {
+				this.clear();
+			}
+		} catch (error) {
+			console.error(`写入日志文件时出错: ${error}`);
+		}
+	}
 
-    // 清除日志的方法
-    clear(): void {
-        const today = new Date();
-        const idate = today.getDate() % 3;
-        
-        fs.readdir(this.menu, (err, files) => {
-            if (err) {
-                console.error(`Error reading directory: ${err}`);
-                return;
-            }
+	/**
+	 * 清理旧的日志文件
+	 */
+	clear(): void {
+		const today = new Date();
+		const idate = today.getDate() % 3;
+		
+		fs.readdir(this.menu, (err, files) => {
+			if (err) {
+				console.error(`Error reading directory: ${err}`);
+				return;
+			}
 
-            files.forEach(file => {
-                if (file.startsWith('7788_') && file.endsWith('.log')) {
-                    const filePath = path.join(this.menu, file);
-                    const fileDate = this.getDateFromFilename(file);
-                    
-                    if (fileDate && (today.getTime() - fileDate.getTime() > 3 * 24 * 60 * 60 * 1000)) {
-                        fs.unlink(filePath, (err) => {
-                            if (err) {
-                                console.error(`Error deleting file ${filePath}: ${err}`);
-                            }
-                        });
-                    }
-                }
-            });
-        });
-    }
+			files.forEach(file => {
+				if (file.startsWith('7788_') && file.endsWith('.log')) {
+					const filePath = path.join(this.menu, file);
+					const fileDate = this.getDateFromFilename(file);
+					
+					if (fileDate && (today.getTime() - fileDate.getTime() > 3 * 24 * 60 * 60 * 1000)) {
+						fs.unlink(filePath, (err) => {
+							if (err) {
+								console.error(`Error deleting file ${filePath}: ${err}`);
+							}
+						});
+					}
+				}
+			});
+		});
+	}
 
-    private getDateFromFilename(filename: string): Date | null {
-        const match = filename.match(/7788_(\d{4}-\d{2}-\d{2})/);
-        if (match) {
-            return new Date(match[1]);
-        }
-        return null;
-    }
+	/**
+	 * 清空AI日志文件
+	 */
+	private clearAILog(): void {
+		const aiLogPath = path.join(this.menu, this.file);
+		fs.writeFileSync(aiLogPath, '');
+	}
+
+	/**
+	 * 从文件名中提取日期
+	 * @param filename 文件名
+	 */
+	private getDateFromFilename(filename: string): Date | null {
+		const match = filename.match(/7788_(\d{4}-\d{2}-\d{2})/);
+		if (match) {
+			return new Date(match[1]);
+		}
+		return null;
+	}
 }
