@@ -10,9 +10,8 @@ export default class LogstashServerLog78 implements IServerLog78 {
     constructor(serverUrl: string, levelFile: number = 50) {
         this.serverUrl = serverUrl;
         this.logger = new TsLog78();
-        this.logger.LevelApi = 99999;
-        this.logger.LevelConsole = levelFile;
-        this.logger.LevelFile = levelFile;
+        this.logger.setupLevel(levelFile,levelFile,99999);
+     
     }
 
     async logToServer(logEntry: LogEntry): Promise<Response> {
