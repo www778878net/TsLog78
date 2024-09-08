@@ -13,8 +13,8 @@ export default class LogEntry {
   }
 
   toJson(): string {
-    const obj = this.flattenObject(this);
-    return JSON.stringify(obj);
+    const flattenedObj = this.flattenObject(this);
+    return JSON.stringify(flattenedObj);
   }
 
   private flattenObject(obj: any): any {
@@ -22,7 +22,7 @@ export default class LogEntry {
     Object.keys(obj).forEach(key => {
       if (typeof obj[key] === 'object' && obj[key] !== null) {
         Object.assign(flattened, this.flattenObject(obj[key]));
-      } else if (obj[key] !== undefined) {
+      } else if (obj[key] !== null && obj[key] !== undefined && obj[key] !== '') {
         flattened[key.toLowerCase()] = obj[key];
       }
     });
@@ -39,7 +39,7 @@ export class BasicInfo {
   logLevelNumber: number = 0;
   timestamp?: Date = new Date();
   logLevel?: string;
-  message?: string;
+  message?: any;
   hostName?: string;
   serviceName?: string;
   serviceMenu?: string;

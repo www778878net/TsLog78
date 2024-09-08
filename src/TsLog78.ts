@@ -23,29 +23,43 @@ import IFileLog78 from "./IFileLog78";
 import IServerLog78 from "./IServerLog78";
 import  LogEntry  from './LogEntry';
 import { injectable } from "inversify";
+import * as process from 'process';
 
 /**
  * 日志类 
- * 后续加上:
- * .采样:随机 或条件 减少日志量
- * .集合:可以按时间段、用户、事件类型等进行聚合
- * .分级:只对重要级别的日志进行详细记录和分析(现在基本可以了)
- * .轮转:定期轮转日志文件(文件做了) 服务器要清或转
  *  */
 @injectable()
 export class TsLog78 {
-  public debugKind: Set<string> = new Set();
-  public LevelFile: number = 50;
-  public LevelConsole: number = 60;
-  public LevelApi: number = 70;
+  /** 用于存储需要调试的特定键 */
+  private debugKind: Set<string> = new Set();
+
+  /** 文件日志的最低级别 */
+  private levelFile: number = 30;
+
+  /** 控制台日志的最低级别 */
+  private levelConsole: number = 60;
+
+  /** API日志的最低级别 */
+  private levelApi: number = 50;
+
+  /** 服务器日志记录器 */
   private serverLogger?: IServerLog78;
+
+  /** 控制台日志记录器 */
   private consoleLogger?: IConsoleLog78 = new ConsoleLog78();
+
+  /** 文件日志记录器 */
   private fileLogger?: IFileLog78 = new FileLog78();
 
+  /** 用于特定调试的日志条目 */
   public DebugEntry?: LogEntry;
 
+  /** 单例实例 */
   private static instance?: TsLog78;
 
+  /**
+   * 获取TsLog78的单例实例
+   */
   public static get Instance(): TsLog78 {
     if (!TsLog78.instance) {
       TsLog78.instance = new TsLog78();
@@ -54,25 +68,94 @@ export class TsLog78 {
     return TsLog78.instance;
   }
 
-  constructor() {}
+  /** 是否处于开发模式 */
+  private isDevMode: boolean = false;
 
-  public setup(serverLogger?: IServerLog78, fileLogger?: IFileLog78, consoleLogger?: IConsoleLog78) {
-    this.serverLogger = serverLogger;
-    this.fileLogger = fileLogger;
-    this.consoleLogger = consoleLogger;
+  /** AI分析用的日志文件 */
+  private aiLogFile?: IFileLog78;
+
+  constructor() {
+    this.setEnvironment();
   }
 
+  /**
+   * 设置运行环境并初始化相应的日志级别
+   */
+  private setEnvironment() {
+    const env = process.env.NODE_ENV || 'production';
+    this.isDevMode = env === 'development';
+    this.setupLevelByEnv(env);
+    if (this.isDevMode) {
+      this.setupAILog();
+    }
+  }
+
+  /**
+   * 根据环境设置日志级别
+   * @param env 环境名称
+   */
+  private setupLevelByEnv(env: string) {
+    switch (env) {
+      case 'development':
+        this.setupLevel(20, 20, 50); // debug以上打印文件，debug以上打印控制台，warn以上打印API
+        break;
+      case 'test':
+        this.setupLevel(20, 60, 50); // debug以上打印文件，error打印控制台，warn以上打印API
+        break;
+      default: // production
+        this.setupLevel(30, 60, 50); // info以上打印文件，error打印控制台，warn以上打印API
+    }
+  }
+
+  /**
+   * 设置各种日志输出的级别
+   * @param fileLevel 文件日志级别
+   * @param consoleLevel 控制台日志级别
+   * @param apiLevel API日志级别
+   */
+  public setupLevel(fileLevel: number, consoleLevel: number, apiLevel: number) {
+    this.levelFile = fileLevel;
+    this.levelConsole = consoleLevel;
+    this.levelApi = apiLevel;
+  }
+
+  /**
+   * 设置AI分析用的日志文件
+   */
+  private setupAILog() {
+    this.aiLogFile = new FileLog78('ai_debug.log', 'logs', true);
+  }
+
+  /**
+   * 设置日志记录器
+   * @param serverLogger 服务器日志记录器
+   * @param fileLogger 文件日志记录器
+   * @param consoleLogger 控制台日志记录器
+   */
+  public setup(serverLogger?: IServerLog78, fileLogger?: IFileLog78, consoleLogger?: IConsoleLog78) {
+    this.serverLogger = serverLogger;
+    this.fileLogger = fileLogger || this.fileLogger;
+    this.consoleLogger = consoleLogger || this.consoleLogger;
+  }
+
+  /**
+   * 克隆当前日志实例
+   */
   public clone(): TsLog78 {
     const cloned = new TsLog78();
     cloned.serverLogger = this.serverLogger;
     cloned.fileLogger = this.fileLogger;
     cloned.consoleLogger = this.consoleLogger;
-    cloned.LevelApi = this.LevelApi;
-    cloned.LevelConsole = this.LevelConsole;
-    cloned.LevelFile = this.LevelFile;
+    cloned.levelApi = this.levelApi;
+    cloned.levelConsole = this.levelConsole;
+    cloned.levelFile = this.levelFile;
     return cloned;
   }
 
+  /**
+   * 处理日志条目并根据设置输出到相应的目标
+   * @param logEntry 日志条目
+   */
   private async processLog(logEntry: LogEntry): Promise<void> {
     if (!logEntry.basic) {
       await this.errorEntry(new LogEntry({ 
@@ -89,21 +172,40 @@ export class TsLog78 {
 
     const isDebug = this.isDebugKey(logEntry);
 
-    if (isDebug || logEntry.basic.logLevelNumber >= this.LevelApi) {
+    // 快速检查：如果不满足任何输出条件，直接返回
+    if (!isDebug && 
+        logEntry.basic.logLevelNumber < this.levelApi && 
+        logEntry.basic.logLevelNumber < this.levelFile && 
+        logEntry.basic.logLevelNumber < this.levelConsole &&
+        !this.isDevMode) {
+      return;
+    }
+
+    if (isDebug || logEntry.basic.logLevelNumber >= this.levelApi) {
       if (this.serverLogger) {
         await this.serverLogger.logToServer(logEntry);
       }
     }
 
-    if (isDebug || logEntry.basic.logLevelNumber >= this.LevelFile) {
+    if (this.isDevMode) {
+      // 开发环境下，所有日志都写入 AI 分析用的日志文件
+      this.aiLogFile?.logToFile(logEntry);
+    }
+
+    // 正常的文件日志记录逻辑
+    if (isDebug || logEntry.basic.logLevelNumber >= this.levelFile) {
       this.fileLogger?.logToFile(logEntry);
     }
 
-    if (isDebug || logEntry.basic.logLevelNumber >= this.LevelConsole) {
+    if (isDebug || logEntry.basic.logLevelNumber >= this.levelConsole) {
       this.consoleLogger?.writeLine(logEntry);
     }
   }
 
+  /**
+   * 检查日志条目是否匹配调试条件
+   * @param logEntry 日志条目
+   */
   private isDebugKey(logEntry: LogEntry): boolean {
     if (this.DebugEntry?.basic) {
       return !!(
@@ -126,26 +228,42 @@ export class TsLog78 {
     return keysToCheck.some(key => key && this.debugKind.has(key.toLowerCase()));
   }
 
-  public async debugEntry(logEntry: LogEntry, level: number = 10): Promise<void> {
+  /**
+   * 记录DEBUG级别的日志
+   * @param logEntry 日志条目
+   * @param level 日志级别
+   */
+  public async debugEntry(logEntry: LogEntry, level: number = 20): Promise<void> {
     logEntry.basic.logLevel = "DEBUG";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
-  public async debug(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 10): Promise<void> {
+  /**
+   * 记录DEBUG级别的日志
+   * @param summaryOrLogEntry 日志摘要或日志条目
+   * @param messageOrLevelOrObject 日志消息或日志级别或对象
+   * @param level 日志级别
+   */
+  public async debug(summaryOrLogEntry: string | LogEntry, messageOrLevelOrObject?: any, level: number = 20): Promise<void> {
     let logEntry: LogEntry;
 
     if (summaryOrLogEntry instanceof LogEntry) {
       logEntry = summaryOrLogEntry;
       logEntry.basic.logLevel = "DEBUG";
-      logEntry.basic.logLevelNumber = typeof messageOrLevel === 'number' ? messageOrLevel : level;
+      logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
     } else {
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
       logEntry = new LogEntry({
         basic: {
           summary: summaryOrLogEntry,
-          message: typeof messageOrLevel === 'string' ? messageOrLevel : summaryOrLogEntry,
+          message: message,
           logLevel: "DEBUG",
-          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
       });
     }
@@ -153,26 +271,42 @@ export class TsLog78 {
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录INFO级别的日志
+   * @param logEntry 日志条目
+   * @param level 日志级别
+   */
   public async infoEntry(logEntry: LogEntry, level: number = 30): Promise<void> {
     logEntry.basic.logLevel = "INFO";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
-  public async info(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 30): Promise<void> {
+  /**
+   * 记录INFO级别的日志
+   * @param summaryOrLogEntry 日志摘要或日志条目
+   * @param messageOrLevelOrObject 日志消息或日志级别或对象
+   * @param level 日志级别
+   */
+  public async info(summaryOrLogEntry: string | LogEntry, messageOrLevelOrObject?: any, level: number = 30): Promise<void> {
     let logEntry: LogEntry;
 
     if (summaryOrLogEntry instanceof LogEntry) {
       logEntry = summaryOrLogEntry;
       logEntry.basic.logLevel = "INFO";
-      logEntry.basic.logLevelNumber = typeof messageOrLevel === 'number' ? messageOrLevel : level;
+      logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
     } else {
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
       logEntry = new LogEntry({
         basic: {
           summary: summaryOrLogEntry,
-          message: typeof messageOrLevel === 'string' ? messageOrLevel : summaryOrLogEntry,
+          message: message,
           logLevel: "INFO",
-          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
       });
     }
@@ -180,26 +314,42 @@ export class TsLog78 {
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录WARN级别的日志
+   * @param logEntry 日志条目
+   * @param level 日志级别
+   */
   public async warnEntry(logEntry: LogEntry, level: number = 50): Promise<void> {
     logEntry.basic.logLevel = "WARN";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
-  public async warn(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 50): Promise<void> {
+  /**
+   * 记录WARN级别的日志
+   * @param summaryOrLogEntry 日志摘要或日志条目
+   * @param messageOrLevelOrObject 日志消息或日志级别或对象
+   * @param level 日志级别
+   */
+  public async warn(summaryOrLogEntry: string | LogEntry, messageOrLevelOrObject?: any, level: number = 50): Promise<void> {
     let logEntry: LogEntry;
 
     if (summaryOrLogEntry instanceof LogEntry) {
       logEntry = summaryOrLogEntry;
       logEntry.basic.logLevel = "WARN";
-      logEntry.basic.logLevelNumber = typeof messageOrLevel === 'number' ? messageOrLevel : level;
+      logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
     } else {
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
       logEntry = new LogEntry({
         basic: {
           summary: summaryOrLogEntry,
-          message: typeof messageOrLevel === 'string' ? messageOrLevel : summaryOrLogEntry,
+          message: message,
           logLevel: "WARN",
-          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
       });
     }
@@ -207,23 +357,38 @@ export class TsLog78 {
     await this.processLog(logEntry);
   }
 
+  /**
+   * 记录ERROR级别的日志
+   * @param logEntry 日志条目
+   * @param level 日志级别
+   */
   public async errorEntry(logEntry: LogEntry, level: number = 60): Promise<void> {
     logEntry.basic.logLevel = "ERROR";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
-  public async error(errorOrSummary: Error | string, messageOrLevel?: string | number, level: number = 60): Promise<void> {
+  /**
+   * 记录ERROR级别的日志
+   * @param errorOrSummary 错误对象或日志摘要
+   * @param messageOrLevelOrObject 日志消息或日志级别或对象
+   * @param level 日志级别
+   */
+  public async error(errorOrSummary: Error | string, messageOrLevelOrObject?: any, level: number = 60): Promise<void> {
     let logEntry: LogEntry;
 
     if (errorOrSummary instanceof Error) {
-      // 处理 Error 对象
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== errorOrSummary.message) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
       logEntry = new LogEntry({
         basic: {
           summary: errorOrSummary.message,
-          message: `${messageOrLevel} - ${errorOrSummary.name}: ${errorOrSummary.message}`,
+          message: message,
           logLevel: "ERROR",
-          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         },
         error: {
           errorType: errorOrSummary.name,
@@ -232,13 +397,17 @@ export class TsLog78 {
         }
       });
     } else {
-      // 处理 summary 和 message
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== errorOrSummary) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
       logEntry = new LogEntry({
         basic: {
           summary: errorOrSummary,
-          message: typeof messageOrLevel === 'string' ? messageOrLevel : errorOrSummary,
+          message: message,
           logLevel: "ERROR",
-          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
       });
     }
@@ -246,20 +415,55 @@ export class TsLog78 {
     await this.processLog(logEntry);
   }
 
-  // 使用 LogEntry 对象的方法
+  /**
+   * 使用 LogEntry 对象的方法
+   * @param logEntry 日志条目
+   */
   public async logEntry(logEntry: LogEntry): Promise<void> {
     await this.processLog(logEntry);
   }
 
- 
-  
+  /**
+   * 记录DETAIL级别的日志
+   * @param logEntry 日志条目
+   * @param level 日志级别
+   */
+  public async detailEntry(logEntry: LogEntry, level: number = 10): Promise<void> {
+    logEntry.basic.logLevel = "DETAIL";
+    logEntry.basic.logLevelNumber = level;
+    await this.processLog(logEntry);
+  }
 
-  // 辅助方法，用于获取日志级别字符串
-  private getLevelString(level: number): string {
-    if (level <= 10) return "DEBUG";
-    if (level <= 30) return "INFO";
-    if (level <= 50) return "WARN";
-    return "ERROR";
+  /**
+   * 记录DETAIL级别的日志
+   * @param summaryOrLogEntry 日志摘要或日志条目
+   * @param messageOrLevelOrObject 日志消息或日志级别或对象
+   * @param level 日志级别
+   */
+  public async detail(summaryOrLogEntry: string | LogEntry, messageOrLevelOrObject?: any, level: number = 10): Promise<void> {
+    let logEntry: LogEntry;
+
+    if (summaryOrLogEntry instanceof LogEntry) {
+      logEntry = summaryOrLogEntry;
+      logEntry.basic.logLevel = "DETAIL";
+      logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
+    } else {
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
+      logEntry = new LogEntry({
+        basic: {
+          summary: summaryOrLogEntry,
+          message: message,
+          logLevel: "DETAIL",
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
+        }
+      });
+    }
+
+    await this.processLog(logEntry);
   }
 } // 类定义结束
 
