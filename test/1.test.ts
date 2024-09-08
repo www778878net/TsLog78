@@ -7,6 +7,17 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 describe('TsLog78 Tests', () => {
+  const testDate = new Date('2024-09-09T10:00:00Z');
+
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(testDate);
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     // 在每个测试前重置环境变量和单例实例
     process.env.NODE_ENV = 'development';
@@ -49,12 +60,14 @@ describe('TsLog78 Tests', () => {
     const files = fs.readdirSync(logsDir);
     console.log('Files in logs directory:', files);
 
-    // 查找今天的日志文件
-    const today = new Date().toISOString().split('T')[0];
-    const todayLogFile = files.find(file => file.includes(today) && file.startsWith('7788_'));
+    // 修改这部分代码
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const hour = now.getHours().toString().padStart(2, '0');
+    const todayLogFile = files.find(file => file.includes(`${today}-${hour}`) && file.startsWith('7788_'));
 
     if (!todayLogFile) {
-      throw new Error(`Could not find today's log file in ${logsDir}`);
+      throw new Error(`Could not find today's log file for hour ${hour} in ${logsDir}`);
     }
 
     const logFilePath = path.join(logsDir, todayLogFile);
@@ -147,7 +160,7 @@ describe('TsLog78 Tests', () => {
 
   test('TestFileLog78', async () => {
     const log = TsLog78.Instance;
-    // 不需要显式设置日志级别，使用默认设置
+    log.setup(undefined, new FileLog78(), undefined);
 
     const testEntry = new LogEntry({
       basic: {
@@ -170,12 +183,14 @@ describe('TsLog78 Tests', () => {
     const files = fs.readdirSync(logsDir);
     console.log('Files in logs directory:', files);
 
-    // 查找今天的日志文件
-    const today = new Date().toISOString().split('T')[0];
-    const todayLogFile = files.find(file => file.includes(today) && file.startsWith('7788_'));
+    // 修改这部分代码
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const hour = now.getHours().toString().padStart(2, '0');
+    const todayLogFile = files.find(file => file.includes(`${today}-${hour}`) && file.startsWith('7788_'));
 
     if (!todayLogFile) {
-      throw new Error(`Could not find today's log file in ${logsDir}`);
+      throw new Error(`Could not find today's log file for hour ${hour} in ${logsDir}`);
     }
 
     const logFilePath = path.join(logsDir, todayLogFile);
@@ -251,25 +266,24 @@ describe('TsLog78 Tests', () => {
     expect(parsedLog).not.toHaveProperty('emptystringprop');
   });
 
-  test('TestAILog', async () => {
-    process.env.NODE_ENV = 'development'; // 设置为开发环境
-    const log = new TsLog78(); // 创建新实例以触发 setEnvironment
+  test('TestDetailLog', async () => {
+    const logger = new TsLog78();
+    logger.setupDetailFile();
     
-    const testEntry = new LogEntry({
-      basic: {
-        message: "Test AI log",
-        summary: "AI Log Test",
-        logLevelNumber: 10,
-        logLevel: "DETAIL"
-      }
+    const logEntry = new LogEntry({
+        basic: {
+            summary: "Test detail log",
+            message: "This is a test for detail logging",
+            logLevelNumber: 30,
+            logLevel: "INFO"
+        }
     });
 
-    await log.detail(testEntry);
+    await logger.logEntry(logEntry);
 
-    // 检查 AI 日志文件是否存在并包含内容
-    const aiLogPath = path.join('logs', 'ai_debug.log');
-    expect(fs.existsSync(aiLogPath)).toBe(true);
-    const aiLogContent = fs.readFileSync(aiLogPath, 'utf8');
-    expect(aiLogContent).toContain("Test AI log");
+    // 验证详细日志文件是否存在并包含正确的内容
+    const detailLogContent = fs.readFileSync(path.join('logs', 'detail.log'), 'utf8');
+    expect(detailLogContent).toContain("Test detail log");
+    expect(detailLogContent).toContain("This is a test for detail logging");
   });
 });

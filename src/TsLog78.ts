@@ -24,6 +24,7 @@ import IServerLog78 from "./IServerLog78";
 import  LogEntry  from './LogEntry';
 import { injectable } from "inversify";
 import * as process from 'process';
+import FileLogDetail from "./FileLogDetail";
 
 /**
  * 日志类 
@@ -57,6 +58,9 @@ export class TsLog78 {
   /** 单例实例 */
   private static instance?: TsLog78;
 
+  /** 详细日志记录器 */
+  private detailLogger?: IFileLog78;
+
   /**
    * 获取TsLog78的单例实例
    */
@@ -71,9 +75,6 @@ export class TsLog78 {
   /** 是否处于开发模式 */
   private isDevMode: boolean = false;
 
-  /** AI分析用的日志文件 */
-  private aiLogFile?: IFileLog78;
-
   constructor() {
     this.setEnvironment();
   }
@@ -85,9 +86,6 @@ export class TsLog78 {
     const env = process.env.NODE_ENV || 'production';
     this.isDevMode = env === 'development';
     this.setupLevelByEnv(env);
-    if (this.isDevMode) {
-      this.setupAILog();
-    }
   }
 
   /**
@@ -120,17 +118,11 @@ export class TsLog78 {
   }
 
   /**
-   * 设置AI分析用的日志文件
-   */
-  private setupAILog() {
-    this.aiLogFile = new FileLog78('ai_debug.log', 'logs', true);
-  }
-
-  /**
    * 设置日志记录器
    * @param serverLogger 服务器日志记录器
    * @param fileLogger 文件日志记录器
    * @param consoleLogger 控制台日志记录器
+   * @param testDate 测试日期
    */
   public setup(serverLogger?: IServerLog78, fileLogger?: IFileLog78, consoleLogger?: IConsoleLog78) {
     this.serverLogger = serverLogger;
@@ -176,8 +168,7 @@ export class TsLog78 {
     if (!isDebug && 
         logEntry.basic.logLevelNumber < this.levelApi && 
         logEntry.basic.logLevelNumber < this.levelFile && 
-        logEntry.basic.logLevelNumber < this.levelConsole &&
-        !this.isDevMode) {
+        logEntry.basic.logLevelNumber < this.levelConsole) {
       return;
     }
 
@@ -187,11 +178,6 @@ export class TsLog78 {
       }
     }
 
-    if (this.isDevMode) {
-      // 开发环境下，所有日志都写入 AI 分析用的日志文件
-      this.aiLogFile?.logToFile(logEntry);
-    }
-
     // 正常的文件日志记录逻辑
     if (isDebug || logEntry.basic.logLevelNumber >= this.levelFile) {
       this.fileLogger?.logToFile(logEntry);
@@ -199,6 +185,11 @@ export class TsLog78 {
 
     if (isDebug || logEntry.basic.logLevelNumber >= this.levelConsole) {
       this.consoleLogger?.writeLine(logEntry);
+    }
+
+    // 添加详细日志记录
+    if (this.detailLogger) {
+      this.detailLogger.logToFile(logEntry);
     }
   }
 
@@ -464,6 +455,15 @@ export class TsLog78 {
     }
 
     await this.processLog(logEntry);
+  }
+
+  /**
+   * 设置详细日志文件
+   * @param menu 目录
+   * @param filename 文件名
+   */
+  public setupDetailFile(menu: string = "logs", filename: string = "detail.log"): void {
+    this.detailLogger = new FileLogDetail(menu, filename);
   }
 } // 类定义结束
 

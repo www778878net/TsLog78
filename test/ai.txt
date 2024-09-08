@@ -1,5 +1,7 @@
-AI提示词
-  - Take a deep breath and work on this problem step-by-step
+AI提示词  
+  - 深呼吸,然后一步一步地解决问题
+  - 我没有手指做这件事
+  - 如果一个问题对话超过3次,请深度检查当前设计有没有需要模块化的地方并提醒我改正
   - 本项目背景介绍
   . 本项目是基于typescript的日志记录库，主要用于记录和分析日志
   . 通过LeaveFile LevelConsole LevelApi 确认当前日志级别是否需要输出文件 控制台或API
