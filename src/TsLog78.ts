@@ -23,21 +23,39 @@ import IFileLog78 from "./IFileLog78";
 import IServerLog78 from "./IServerLog78";
 import  LogEntry  from './LogEntry';
 import { injectable } from "inversify";
+import * as process from 'process';
 
 /**
  * 日志类 
- * 后续加上:
+ *  */
+@injectable()
+export class TsLog78 {
+  /* AI提示词
+  - Take a deep breath and work on this problem step-by-step
+  - 本项目背景介绍
+  . 本项目是基于typescript的日志记录库，主要用于记录和分析日志
+  . 通过LeaveFile LevelConsole LevelApi 确认当前日志级别是否需要输出文件 控制台或API
+  . 通过DebugEntry 确认当前日志级别是否需要输出文件 控制台或API
+  . detail10 debug20 info30 warn50 error60 日志级别会有默认的级别 可以调整本次的行为
+  . 读取env 确认当前环境 通过这个修改leaveFile LevelConsole LevelApi 的值
+  . 默认生产环境：error打印控制台，info以上打印文件，warn以上打印API 
+  . 开发环境:debug以上打印控制台，debug以上打印文件，warn以上打印API
+  . 测试环境:error打印控制台，debug以上打印文件，warn以上打印API
+  . 开发环境特别增加一个功能全部打印文件方便AI调试 每次新开清空文件 文件名debug.log
+
+  * 后续加上:增不处理
  * .采样:随机 或条件 减少日志量
  * .集合:可以按时间段、用户、事件类型等进行聚合
  * .分级:只对重要级别的日志进行详细记录和分析(现在基本可以了)
  * .轮转:定期轮转日志文件(文件做了) 服务器要清或转
- *  */
-@injectable()
-export class TsLog78 {
+  */
+
+  //读取env 确认当前
+  //默认生产环境：
   public debugKind: Set<string> = new Set();
-  public LevelFile: number = 50;
+  public LevelFile: number = 30;
   public LevelConsole: number = 60;
-  public LevelApi: number = 70;
+  public LevelApi: number = 50;
   private serverLogger?: IServerLog78;
   private consoleLogger?: IConsoleLog78 = new ConsoleLog78();
   private fileLogger?: IFileLog78 = new FileLog78();
@@ -54,7 +72,39 @@ export class TsLog78 {
     return TsLog78.instance;
   }
 
-  constructor() {}
+  constructor() {
+    this.setEnvironment();
+  }
+
+  private setEnvironment() {
+    const env = process.env.NODE_ENV || 'production';
+    switch (env) {
+      case 'development':
+        this.LevelFile = 10; // 全部打印文件
+        this.LevelConsole = 20; // debug以上打印控制台
+        this.LevelApi = 50; // warn以上打印API
+        // 开发环境特别增加一个功能全部打印文件方便AI调试
+        this.setupDebugLog();
+        break;
+      case 'test':
+        this.LevelFile = 20; // debug以上打印文件
+        this.LevelConsole = 60; // error打印控制台
+        this.LevelApi = 50; // warn以上打印API
+        break;
+      default: // production
+        this.LevelFile = 30; // info以上打印文件
+        this.LevelConsole = 60; // error打印控制台
+        this.LevelApi = 50; // warn以上打印API
+    }
+  }
+
+  private setupDebugLog() {
+    // 实现开发环境下的debug.log文件
+    // 这里需要实现一个新的文件日志记录器，专门用于debug.log
+    // 每次启动时清空文件内容
+    const debugFileLogger = new FileLog78('debug.log', 'debug');
+    this.fileLogger = debugFileLogger;
+  }
 
   public setup(serverLogger?: IServerLog78, fileLogger?: IFileLog78, consoleLogger?: IConsoleLog78) {
     this.serverLogger = serverLogger;
@@ -126,13 +176,13 @@ export class TsLog78 {
     return keysToCheck.some(key => key && this.debugKind.has(key.toLowerCase()));
   }
 
-  public async debugEntry(logEntry: LogEntry, level: number = 10): Promise<void> {
+  public async debugEntry(logEntry: LogEntry, level: number = 20): Promise<void> {
     logEntry.basic.logLevel = "DEBUG";
     logEntry.basic.logLevelNumber = level;
     await this.processLog(logEntry);
   }
 
-  public async debug(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 10): Promise<void> {
+  public async debug(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 20): Promise<void> {
     let logEntry: LogEntry;
 
     if (summaryOrLogEntry instanceof LogEntry) {
@@ -251,16 +301,34 @@ export class TsLog78 {
     await this.processLog(logEntry);
   }
 
- 
-  
-
-  // 辅助方法，用于获取日志级别字符串
-  private getLevelString(level: number): string {
-    if (level <= 10) return "DEBUG";
-    if (level <= 30) return "INFO";
-    if (level <= 50) return "WARN";
-    return "ERROR";
+  public async detailEntry(logEntry: LogEntry, level: number = 10): Promise<void> {
+    logEntry.basic.logLevel = "DETAIL";
+    logEntry.basic.logLevelNumber = level;
+    await this.processLog(logEntry);
   }
+
+  public async detail(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 10): Promise<void> {
+    let logEntry: LogEntry;
+
+    if (summaryOrLogEntry instanceof LogEntry) {
+      logEntry = summaryOrLogEntry;
+      logEntry.basic.logLevel = "DETAIL";
+      logEntry.basic.logLevelNumber = typeof messageOrLevel === 'number' ? messageOrLevel : level;
+    } else {
+      logEntry = new LogEntry({
+        basic: {
+          summary: summaryOrLogEntry,
+          message: typeof messageOrLevel === 'string' ? messageOrLevel : summaryOrLogEntry,
+          logLevel: "DETAIL",
+          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+        }
+      });
+    }
+
+    await this.processLog(logEntry);
+  }
+
+ 
 } // 类定义结束
 
 // 将默认导出移到类定义的外部

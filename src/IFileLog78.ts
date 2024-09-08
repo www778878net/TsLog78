@@ -14,10 +14,7 @@ import  LogEntry  from './LogEntry';
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-    export default interface IFileLog78 {
-      menu: string;
-      file: string;
-      logToFile(logEntry: LogEntry): void;
-      clear(): void;
-
-    }
+export default interface IFileLog78 {
+  logToFile(logEntry: LogEntry): void;
+  clear(): void;
+}

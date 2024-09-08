@@ -22,15 +22,15 @@ import  LogEntry  from './LogEntry';
 
 // 实现 FileLog78 类
 export default class FileLog78 implements IFileLog78 {
-    menu: string;
-    file: string;
+    private menu: string;
+    private file: string;
     private logger: winston.Logger;
     static logpath: string = "/"; // 静态属性，与C#版本保持一致
 
-    // 构造函数
-    constructor(menu: string = "logs", filename: string = "7788_%DATE%.log") {
-        this.menu = menu;
+    // 修改后的构造函数
+    constructor(filename: string = "7788_%DATE%.log", menu: string = "logs") {
         this.file = filename;
+        this.menu = menu;
         
         const transport = new DailyRotateFile({
             filename: this.file,
@@ -53,7 +53,7 @@ export default class FileLog78 implements IFileLog78 {
         this.clear(); // 在构造函数中调用clear，与C#版本保持一致
     }
 
-    // 将 LogEntry 对象转换为字符串
+    // 实现接口方法
     logToFile(logEntry: LogEntry): void {
         try {
            
