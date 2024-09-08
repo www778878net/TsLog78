@@ -172,6 +172,15 @@ export class TsLog78 {
 
     const isDebug = this.isDebugKey(logEntry);
 
+    // 快速检查：如果不满足任何输出条件，直接返回
+    if (!isDebug && 
+        logEntry.basic.logLevelNumber < this.levelApi && 
+        logEntry.basic.logLevelNumber < this.levelFile && 
+        logEntry.basic.logLevelNumber < this.levelConsole &&
+        !this.isDevMode) {
+      return;
+    }
+
     if (isDebug || logEntry.basic.logLevelNumber >= this.levelApi) {
       if (this.serverLogger) {
         await this.serverLogger.logToServer(logEntry);
@@ -233,23 +242,28 @@ export class TsLog78 {
   /**
    * 记录DEBUG级别的日志
    * @param summaryOrLogEntry 日志摘要或日志条目
-   * @param messageOrLevel 日志消息或日志级别
+   * @param messageOrLevelOrObject 日志消息或日志级别或对象
    * @param level 日志级别
    */
-  public async debug(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 20): Promise<void> {
+  public async debug(summaryOrLogEntry: string | LogEntry, messageOrLevelOrObject?: any, level: number = 20): Promise<void> {
     let logEntry: LogEntry;
 
     if (summaryOrLogEntry instanceof LogEntry) {
       logEntry = summaryOrLogEntry;
       logEntry.basic.logLevel = "DEBUG";
-      logEntry.basic.logLevelNumber = typeof messageOrLevel === 'number' ? messageOrLevel : level;
+      logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
     } else {
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
       logEntry = new LogEntry({
         basic: {
           summary: summaryOrLogEntry,
-          message: typeof messageOrLevel === 'string' ? messageOrLevel : summaryOrLogEntry,
+          message: message,
           logLevel: "DEBUG",
-          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
       });
     }
@@ -271,23 +285,28 @@ export class TsLog78 {
   /**
    * 记录INFO级别的日志
    * @param summaryOrLogEntry 日志摘要或日志条目
-   * @param messageOrLevel 日志消息或日志级别
+   * @param messageOrLevelOrObject 日志消息或日志级别或对象
    * @param level 日志级别
    */
-  public async info(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 30): Promise<void> {
+  public async info(summaryOrLogEntry: string | LogEntry, messageOrLevelOrObject?: any, level: number = 30): Promise<void> {
     let logEntry: LogEntry;
 
     if (summaryOrLogEntry instanceof LogEntry) {
       logEntry = summaryOrLogEntry;
       logEntry.basic.logLevel = "INFO";
-      logEntry.basic.logLevelNumber = typeof messageOrLevel === 'number' ? messageOrLevel : level;
+      logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
     } else {
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
       logEntry = new LogEntry({
         basic: {
           summary: summaryOrLogEntry,
-          message: typeof messageOrLevel === 'string' ? messageOrLevel : summaryOrLogEntry,
+          message: message,
           logLevel: "INFO",
-          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
       });
     }
@@ -309,23 +328,28 @@ export class TsLog78 {
   /**
    * 记录WARN级别的日志
    * @param summaryOrLogEntry 日志摘要或日志条目
-   * @param messageOrLevel 日志消息或日志级别
+   * @param messageOrLevelOrObject 日志消息或日志级别或对象
    * @param level 日志级别
    */
-  public async warn(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 50): Promise<void> {
+  public async warn(summaryOrLogEntry: string | LogEntry, messageOrLevelOrObject?: any, level: number = 50): Promise<void> {
     let logEntry: LogEntry;
 
     if (summaryOrLogEntry instanceof LogEntry) {
       logEntry = summaryOrLogEntry;
       logEntry.basic.logLevel = "WARN";
-      logEntry.basic.logLevelNumber = typeof messageOrLevel === 'number' ? messageOrLevel : level;
+      logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
     } else {
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
       logEntry = new LogEntry({
         basic: {
           summary: summaryOrLogEntry,
-          message: typeof messageOrLevel === 'string' ? messageOrLevel : summaryOrLogEntry,
+          message: message,
           logLevel: "WARN",
-          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
       });
     }
@@ -347,20 +371,24 @@ export class TsLog78 {
   /**
    * 记录ERROR级别的日志
    * @param errorOrSummary 错误对象或日志摘要
-   * @param messageOrLevel 日志消息或日志级别
+   * @param messageOrLevelOrObject 日志消息或日志级别或对象
    * @param level 日志级别
    */
-  public async error(errorOrSummary: Error | string, messageOrLevel?: string | number, level: number = 60): Promise<void> {
+  public async error(errorOrSummary: Error | string, messageOrLevelOrObject?: any, level: number = 60): Promise<void> {
     let logEntry: LogEntry;
 
     if (errorOrSummary instanceof Error) {
-      // 处理 Error 对象
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== errorOrSummary.message) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
       logEntry = new LogEntry({
         basic: {
           summary: errorOrSummary.message,
-          message: `${messageOrLevel} - ${errorOrSummary.name}: ${errorOrSummary.message}`,
+          message: message,
           logLevel: "ERROR",
-          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         },
         error: {
           errorType: errorOrSummary.name,
@@ -369,13 +397,17 @@ export class TsLog78 {
         }
       });
     } else {
-      // 处理 summary 和 message
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== errorOrSummary) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
       logEntry = new LogEntry({
         basic: {
           summary: errorOrSummary,
-          message: typeof messageOrLevel === 'string' ? messageOrLevel : errorOrSummary,
+          message: message,
           logLevel: "ERROR",
-          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
       });
     }
@@ -405,23 +437,28 @@ export class TsLog78 {
   /**
    * 记录DETAIL级别的日志
    * @param summaryOrLogEntry 日志摘要或日志条目
-   * @param messageOrLevel 日志消息或日志级别
+   * @param messageOrLevelOrObject 日志消息或日志级别或对象
    * @param level 日志级别
    */
-  public async detail(summaryOrLogEntry: string | LogEntry, messageOrLevel?: string | number, level: number = 10): Promise<void> {
+  public async detail(summaryOrLogEntry: string | LogEntry, messageOrLevelOrObject?: any, level: number = 10): Promise<void> {
     let logEntry: LogEntry;
 
     if (summaryOrLogEntry instanceof LogEntry) {
       logEntry = summaryOrLogEntry;
       logEntry.basic.logLevel = "DETAIL";
-      logEntry.basic.logLevelNumber = typeof messageOrLevel === 'number' ? messageOrLevel : level;
+      logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
     } else {
+      let message: any = undefined;
+      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
+        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
+      }
+
       logEntry = new LogEntry({
         basic: {
           summary: summaryOrLogEntry,
-          message: typeof messageOrLevel === 'string' ? messageOrLevel : summaryOrLogEntry,
+          message: message,
           logLevel: "DETAIL",
-          logLevelNumber: typeof messageOrLevel === 'number' ? messageOrLevel : level
+          logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
       });
     }
