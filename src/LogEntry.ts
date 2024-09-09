@@ -12,9 +12,24 @@ export default class LogEntry {
     Object.assign(this, init);
   }
 
-  toJson(): string {
-    const flattenedObj = this.flattenObject(this);
-    return JSON.stringify(flattenedObj);
+  public toJson(): string {
+    const jsonObj = { ...this };
+  
+    // 检查并转换 basic.message 如果它是一个对象
+    if (typeof this.basic.message === 'object' && this.basic.message !== null) {
+      jsonObj.basic.message = JSON.stringify(this.basic.message);
+    }
+
+    // 检查并转换 additionalProperties 中的对象
+    if (this.additionalProperties) {
+      for (const key in this.additionalProperties) {
+        if (typeof this.additionalProperties[key] === 'object' && this.additionalProperties[key] !== null) {
+          jsonObj.additionalProperties[key] = JSON.stringify(this.additionalProperties[key]);
+        }
+      }
+    }
+
+    return JSON.stringify(jsonObj);
   }
 
   private flattenObject(obj: any): any {

@@ -6,10 +6,12 @@ import LogEntry from './LogEntry';
 export default class FileLogDetail implements IFileLog78 {
     private filePath: string;
 
-    constructor(menu: string = "logs", filename: string = "detail.log") {
-        this.filePath = path.join(menu, filename);
-        this.clear();
-    }
+    constructor(filename: string = "detail.log", menu: string = "logs", clearOnCreate: boolean = true) {
+      this.filePath = path.join(menu, filename);
+      if (clearOnCreate) {
+          this.clear();
+      }
+  }
 
     logToFile(logEntry: LogEntry): void {
         try {
@@ -21,12 +23,11 @@ export default class FileLogDetail implements IFileLog78 {
     }
 
     clear(): void {
+        // 清空文件
         fs.writeFileSync(this.filePath, '');
     }
 
-    // 添加 close 方法
     close(): void {
-        // FileLogDetail 不需要特别的关闭操作
-        // 如果将来需要，可以在这里添加清理逻辑
+        // 不需要特别的关闭操作
     }
 }

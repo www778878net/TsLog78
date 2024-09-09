@@ -77,6 +77,9 @@ export class TsLog78 {
 
   constructor() {
     this.setEnvironment();
+    if (this.isDevMode) {
+      this.setupDetailFile(); // 在开发模式下自动设置详细日志文件
+    }
   }
 
   /**
@@ -149,10 +152,7 @@ export class TsLog78 {
    * @param logEntry 日志条目
    */
   private async processLog(logEntry: LogEntry): Promise<void> {
-    // 添加详细日志记录，放在最前面，不受其他条件限制
-    if (this.detailLogger) {
-        this.detailLogger.logToFile(logEntry);
-    }
+ 
 
     if (!logEntry.basic) {
         await this.errorEntry(new LogEntry({ 
@@ -166,7 +166,10 @@ export class TsLog78 {
         }));
         return;
     }
-
+   // 始终记录到详细日志文件，不受其他条件限制
+   if (this.detailLogger) {
+    this.detailLogger.logToFile(logEntry);
+  }
     const isDebug = this.isDebugKey(logEntry);
 
     // 快速检查：如果不满足任何输出条件，直接返回
@@ -178,19 +181,19 @@ export class TsLog78 {
     }
 
     if (isDebug || logEntry.basic.logLevelNumber >= this.levelApi) {
-        if (this.serverLogger) {
-            await this.serverLogger.logToServer(logEntry);
-        }
+      if (this.serverLogger) {
+        await this.serverLogger.logToServer(logEntry);
+      }
     }
 
     if (isDebug || logEntry.basic.logLevelNumber >= this.levelFile) {
-        this.fileLogger?.logToFile(logEntry);
+      this.fileLogger?.logToFile(logEntry);
     }
 
     if (isDebug || logEntry.basic.logLevelNumber >= this.levelConsole) {
-        this.consoleLogger?.writeLine(logEntry);
+      this.consoleLogger?.writeLine(logEntry);
     }
-}
+  }
 
   /**
    * 检查日志条目是否匹配调试条件
@@ -243,15 +246,10 @@ export class TsLog78 {
       logEntry.basic.logLevel = "DEBUG";
       logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
     } else {
-      let message: any = undefined;
-      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
-        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
-      }
-
       logEntry = new LogEntry({
         basic: {
           summary: summaryOrLogEntry,
-          message: message,
+          message: messageOrLevelOrObject, // 不进行 JSON 转换
           logLevel: "DEBUG",
           logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
@@ -286,15 +284,10 @@ export class TsLog78 {
       logEntry.basic.logLevel = "INFO";
       logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
     } else {
-      let message: any = undefined;
-      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
-        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
-      }
-
       logEntry = new LogEntry({
         basic: {
           summary: summaryOrLogEntry,
-          message: message,
+          message: messageOrLevelOrObject, // 不进行 JSON 转换
           logLevel: "INFO",
           logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
@@ -329,15 +322,10 @@ export class TsLog78 {
       logEntry.basic.logLevel = "WARN";
       logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
     } else {
-      let message: any = undefined;
-      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
-        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
-      }
-
       logEntry = new LogEntry({
         basic: {
           summary: summaryOrLogEntry,
-          message: message,
+          message: messageOrLevelOrObject, // 不进行 JSON 转换
           logLevel: "WARN",
           logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
@@ -368,15 +356,10 @@ export class TsLog78 {
     let logEntry: LogEntry;
 
     if (errorOrSummary instanceof Error) {
-      let message: any = undefined;
-      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== errorOrSummary.message) {
-        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
-      }
-
       logEntry = new LogEntry({
         basic: {
           summary: errorOrSummary.message,
-          message: message,
+          message: messageOrLevelOrObject, // 不进行 JSON 转换
           logLevel: "ERROR",
           logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         },
@@ -387,15 +370,10 @@ export class TsLog78 {
         }
       });
     } else {
-      let message: any = undefined;
-      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== errorOrSummary) {
-        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
-      }
-
       logEntry = new LogEntry({
         basic: {
           summary: errorOrSummary,
-          message: message,
+          message: messageOrLevelOrObject, // 不进行 JSON 转换
           logLevel: "ERROR",
           logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
@@ -438,15 +416,10 @@ export class TsLog78 {
       logEntry.basic.logLevel = "DETAIL";
       logEntry.basic.logLevelNumber = typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level;
     } else {
-      let message: any = undefined;
-      if (messageOrLevelOrObject !== undefined && messageOrLevelOrObject !== summaryOrLogEntry) {
-        message = typeof messageOrLevelOrObject === 'object' ? JSON.stringify(messageOrLevelOrObject) : messageOrLevelOrObject;
-      }
-
       logEntry = new LogEntry({
         basic: {
           summary: summaryOrLogEntry,
-          message: message,
+          message: messageOrLevelOrObject, // 不进行 JSON 转换
           logLevel: "DETAIL",
           logLevelNumber: typeof messageOrLevelOrObject === 'number' ? messageOrLevelOrObject : level
         }
@@ -458,11 +431,11 @@ export class TsLog78 {
 
   /**
    * 设置详细日志文件
-   * @param menu 目录
    * @param filename 文件名
+   * @param menu 目录
    */
-  public setupDetailFile(menu: string = "logs", filename: string = "detail.log"): void {
-    this.detailLogger = new FileLogDetail(menu, filename);
+  public setupDetailFile(filename: string = "detail.log", menu: string = "logs"): void {
+    this.detailLogger = new FileLogDetail(filename, menu);
   }
 
   /**
@@ -476,6 +449,13 @@ export class TsLog78 {
       this.detailLogger.close();
     }
     // 如果有其他需要关闭的日志记录器，也在这里添加
+  }
+
+  /**
+   * 清空详细日志文件
+   */
+  public clearDetailLog(): void {
+    this.detailLogger?.clear();
   }
 } // 类定义结束
 
