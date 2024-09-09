@@ -6,12 +6,10 @@ import LogEntry from './LogEntry';
 export default class FileLogDetail implements IFileLog78 {
     private filePath: string;
 
-    constructor(filename: string = "detail.log", menu: string = "logs", clearOnCreate: boolean = true) {
+    constructor(filename: string = "detail.log", menu: string = "logs") {
       this.filePath = path.join(menu, filename);
-      console.log(`detail file path: ${this.filePath}`)
-      if (clearOnCreate) {
-          this.clear();
-      }
+      console.warn(`detail file path: ${this.filePath}`)
+     
   }
 
   logToFile(logEntry: LogEntry): void {
@@ -24,7 +22,7 @@ export default class FileLogDetail implements IFileLog78 {
 }
 
     clear(): void {
-        // 清空文件
+        console.warn(`detail file clear: ${this.filePath}`)
         fs.writeFileSync(this.filePath, '');
     }
 

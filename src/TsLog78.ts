@@ -434,6 +434,7 @@ export class TsLog78 {
    * @param menu 目录
    */
   public setupDetailFile(filename: string = "detail.log", menu: string = "logs"): void {
+    console.log(`setupDetailFile   path: ${filename}`)
     this.detailLogger = new FileLogDetail(filename, menu);
   }
 
