@@ -93,45 +93,16 @@ export default class FileLog78 implements IFileLog78 {
 
    // 清除日志的方法
    clear(): void {
-    const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    
-    fs.readdir(this.menu, (err, files) => {
-        if (err) {
-            console.error(`Error reading directory: ${err}`);
-            return;
-        }
+    // Winston的DailyRotateFile已经处理了日志轮转和清理
+    // 如果需要额外的清理逻辑，可以在这里添加
+    console.log('Log rotation and cleanup is handled by Winston DailyRotateFile');
+   }
 
-        files.forEach(file => {
-            if (file.startsWith('7788_') && file.endsWith('.log')) {
-                const filePath = path.join(this.menu, file);
-                const fileDate = this.getDateFromFilename(file);
-                
-                if (fileDate && fileDate < twentyFourHoursAgo) {
-                    fs.unlink(filePath, (err) => {
-                        if (err) {
-                            console.error(`Error deleting file ${filePath}: ${err}`);
-                        }
-                    });
-                }
-            }
-        });
-    });
-}
-
-private getDateFromFilename(filename: string): Date | null {
-    const match = filename.match(/7788_(\d{4}-\d{2}-\d{2}-\d{2})/);
-    if (match) {
-        return new Date(match[1].replace(/-/g, ':'));
-    }
-    return null;
-}
-
-public close(): void {
-	if (this.logger) {
-		this.logger.close();
+	public close(): void {
+		if (this.logger) {
+			this.logger.close();
+		}
 	}
-}
 
  
 
