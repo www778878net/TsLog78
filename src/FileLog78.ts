@@ -25,11 +25,14 @@ export default class FileLog78 implements IFileLog78 {
 	private menu: string;
 	private file: string;
 	private logger?: winston.Logger;
-	static logpath: string = "/";
 
-	constructor(filename: string = "7788_%DATE%.log", menu: string = "logs") {
+	constructor(filename: string = "7788_log", menu: string = "logs") {
 		this.file = filename;
 		this.menu = menu;
+
+		if (!fs.existsSync(this.menu)) {
+			fs.mkdirSync(this.menu, { recursive: true });
+		}
 	
 		const transport = new DailyRotateFile({
 			filename: this.file,
