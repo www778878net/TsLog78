@@ -23,4 +23,10 @@ export default class FileLogDetail implements IFileLog78 {
     clear(): void {
         fs.writeFileSync(this.filePath, '');
     }
+
+    // 添加 close 方法
+    close(): void {
+        // FileLogDetail 不需要特别的关闭操作
+        // 如果将来需要，可以在这里添加清理逻辑
+    }
 }

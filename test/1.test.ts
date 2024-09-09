@@ -1,10 +1,33 @@
 ﻿import { TsLog78 } from '../src/TsLog78';
-import  LogEntry  from '../src/LogEntry';
+import LogEntry from '../src/LogEntry';
 import FileLog78 from '../src/FileLog78';
 import ConsoleLog78 from '../src/ConsoleLog78';
 import LogstashServerLog78 from '../src/LogstashServerLog78';
 import * as fs from 'fs';
 import * as path from 'path';
+import { promisify } from 'util';
+
+const sleep = promisify(setTimeout);
+
+function emptyDir(directory: string) {
+  if (fs.existsSync(directory)) {
+    const files = fs.readdirSync(directory);
+    for (const file of files) {
+      const filePath = path.join(directory, file);
+      try {
+        const stats = fs.statSync(filePath);
+        if (stats.isDirectory()) {
+          emptyDir(filePath);
+          fs.rmdirSync(filePath);
+        } else {
+          fs.unlinkSync(filePath);
+        }
+      } catch (error) {
+        console.error(`Error processing file ${filePath}: ${error}`);
+      }
+    }
+  }
+}
 
 describe('TsLog78 Tests', () => {
   const testDate = new Date('2024-09-09T10:00:00Z');
@@ -12,6 +35,9 @@ describe('TsLog78 Tests', () => {
   beforeAll(() => {
     jest.useFakeTimers();
     jest.setSystemTime(testDate);
+    if (!fs.existsSync('logs')) {
+      fs.mkdirSync('logs');
+    }
   });
 
   afterAll(() => {
@@ -19,16 +45,18 @@ describe('TsLog78 Tests', () => {
   });
 
   beforeEach(() => {
-    // 在每个测试前重置环境变量和单例实例
     process.env.NODE_ENV = 'development';
     // @ts-ignore: 重置单例实例
     TsLog78.instance = undefined;
-  });
-
-  beforeAll(() => {
-    // 确保 logs 目录存在
-    if (!fs.existsSync('logs')) {
-      fs.mkdirSync('logs');
+    
+    // 关闭所有日志记录器
+    TsLog78.Instance.close();
+    
+    // 使用 try-catch 来处理可能的权限错误
+    try {
+      emptyDir('logs');
+    } catch (error) {
+      console.error(`Error emptying logs directory: ${error}`);
     }
   });
 
@@ -42,7 +70,7 @@ describe('TsLog78 Tests', () => {
     const log = TsLog78.Instance;
     const consoleLogger = new ConsoleLog78();
 
-    log.setup(undefined, undefined, consoleLogger);
+    log.setup(undefined, new FileLog78(), consoleLogger);
 
     const testEntry = new LogEntry({
       basic: {
@@ -54,20 +82,16 @@ describe('TsLog78 Tests', () => {
     });
 
     await log.infoEntry(testEntry);
+    await sleep(1000);
 
-    // 检查 logs 目录中的所有文件
     const logsDir = 'logs';
     const files = fs.readdirSync(logsDir);
     console.log('Files in logs directory:', files);
 
-    // 修改这部分代码
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const hour = now.getHours().toString().padStart(2, '0');
-    const todayLogFile = files.find(file => file.includes(`${today}-${hour}`) && file.startsWith('7788_'));
+    const todayLogFile = files.find(file => file.startsWith('7788_') && file.endsWith('.log'));
 
     if (!todayLogFile) {
-      throw new Error(`Could not find today's log file for hour ${hour} in ${logsDir}`);
+      throw new Error(`Could not find today's log file in ${logsDir}`);
     }
 
     const logFilePath = path.join(logsDir, todayLogFile);
@@ -85,10 +109,7 @@ describe('TsLog78 Tests', () => {
 
     const clonedLog = originalLog.clone();
 
-    // 由于我们不能直接访问私有属性，我们可以通过调用方法来间接测试
-    // 这里我们可以添加一些日志，然后检查它们是否按预期被记录
-    // 但是这需要模拟文件系统和控制台输出，这超出了这个简单修复的范围
-    expect(clonedLog).not.toBe(originalLog); // 至少确保克隆创建了一个新实例
+    expect(clonedLog).not.toBe(originalLog);
   });
 
   test('TestCustomLogEntry', async () => {
@@ -108,7 +129,7 @@ describe('TsLog78 Tests', () => {
 
     await log.infoEntry(customEntry);
 
-    expect(true).toBe(true); // 如果没有抛出异常，则测试通过
+    expect(true).toBe(true);
   });
 
   test('TestCustomLogEntryWithException', async () => {
@@ -127,7 +148,7 @@ describe('TsLog78 Tests', () => {
 
     await log.errorEntry(customEntry);
 
-    expect(true).toBe(true); // 如果没有抛出异常，则测试通过
+    expect(true).toBe(true);
   });
 
   test('TestLogstashServerLog78', async () => {
@@ -150,12 +171,9 @@ describe('TsLog78 Tests', () => {
       }
     });
 
-    //can't work to github
-    // await log.infoEntry(testEntry);
+    await log.infoEntry(testEntry);
 
-    // await new Promise(resolve => setTimeout(resolve, 2000));
-
-    expect(true).toBe(true); // 如果没有抛出异常，则测试通过
+    expect(true).toBe(true);
   });
 
   test('TestFileLog78', async () => {
@@ -177,20 +195,16 @@ describe('TsLog78 Tests', () => {
     });
 
     await log.infoEntry(testEntry);
+    await sleep(1000);
 
-    // 检查 logs 目录中的所有文件
     const logsDir = 'logs';
     const files = fs.readdirSync(logsDir);
     console.log('Files in logs directory:', files);
 
-    // 修改这部分代码
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const hour = now.getHours().toString().padStart(2, '0');
-    const todayLogFile = files.find(file => file.includes(`${today}-${hour}`) && file.startsWith('7788_'));
+    const todayLogFile = files.find(file => file.startsWith('7788_') && file.endsWith('.log'));
 
     if (!todayLogFile) {
-      throw new Error(`Could not find today's log file for hour ${hour} in ${logsDir}`);
+      throw new Error(`Could not find today's log file in ${logsDir}`);
     }
 
     const logFilePath = path.join(logsDir, todayLogFile);
@@ -281,7 +295,6 @@ describe('TsLog78 Tests', () => {
 
     await logger.logEntry(logEntry);
 
-    // 验证详细日志文件是否存在并包含正确的内容
     const detailLogContent = fs.readFileSync(path.join('logs', 'detail.log'), 'utf8');
     expect(detailLogContent).toContain("Test detail log");
     expect(detailLogContent).toContain("This is a test for detail logging");

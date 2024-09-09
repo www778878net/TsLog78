@@ -31,50 +31,67 @@ export default class FileLog78 implements IFileLog78 {
 		this.file = filename;
 		this.menu = menu;
 	
-    const transport = new DailyRotateFile({
-      filename: this.file,
-      dirname: this.menu,
-      datePattern: 'YYYY-MM-DD',
-      maxSize: '5m',
-      maxFiles: '5d',
-      format: winston.format.json()
-  });
+		const transport = new DailyRotateFile({
+			filename: this.file,
+			dirname: this.menu,
+			datePattern: 'YYYY-MM-DD-HH',
+			maxSize: '5m',
+			maxFiles: '24h',
+			format: winston.format.json()
+		});
 
-  this.logger = winston.createLogger({
-      level: 'info',
-      format: winston.format.combine(
-          winston.format.timestamp(),
-          winston.format.json()
-      ),
-      transports: [transport]
-  });
+		this.logger = winston.createLogger({
+			level: 'info',
+			format: winston.format.combine(
+				winston.format.timestamp(),
+				winston.format.json()
+			),
+			transports: [transport]
+		});
 
-  this.clear(); // 在构造函数中调用clear，与C#版本保持一致
+		this.clear(); // 在构造函数中调用clear，与C#版本保持一致
 	
 	}
 
 	logToFile(logEntry: LogEntry): void {
 	 
-			try {
-				if (this.logger) {
-					this.logger.info(logEntry.toJson());
-				} else {
-					console.error('Logger is not initialized');
-				}
-				const now = new Date();
-				if (now.getMinutes() === 0 && now.getSeconds() < 10) {
-					this.clear();
-				}
-			} catch (error) {
-				console.error(`写入日志文件时出错: ${error}`);
+		try {
+			if (this.logger) {
+				const currentFileName = this.getCurrentFileName();
+				console.log(`Writing to file: ${currentFileName}`);
+				
+				this.logger.info(logEntry.toJson());
+			} else {
+				console.error('Logger is not initialized');
 			}
+			const now = new Date();
+			if (now.getMinutes() === 0 && now.getSeconds() < 10) {
+				this.clear();
+			}
+		} catch (error) {
+			console.error(`写入日志文件时出错: ${error}`);
+		}
 	 
+	}
+
+	private getCurrentFileName(): string {
+		if (this.logger && this.logger.transports.length > 0) {
+			const transport = this.logger.transports[0] as DailyRotateFile;
+			if (transport instanceof DailyRotateFile) {
+				return transport.filename; // 使用 filename 属性而不是 getFilename 方法
+			}
+		}
+		// 如果无法从 logger 获取文件名，则使用默认的文件名格式
+		const now = new Date();
+		const dateString = now.toISOString().split('T')[0];
+		const hour = now.getHours().toString().padStart(2, '0');
+		return this.file.replace('%DATE%', dateString).replace('%HOUR%', hour);
 	}
 
    // 清除日志的方法
    clear(): void {
-    const today = new Date();
-    const idate = today.getDate() % 3;
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     
     fs.readdir(this.menu, (err, files) => {
         if (err) {
@@ -87,7 +104,7 @@ export default class FileLog78 implements IFileLog78 {
                 const filePath = path.join(this.menu, file);
                 const fileDate = this.getDateFromFilename(file);
                 
-                if (fileDate && (today.getTime() - fileDate.getTime() > 3 * 24 * 60 * 60 * 1000)) {
+                if (fileDate && fileDate < twentyFourHoursAgo) {
                     fs.unlink(filePath, (err) => {
                         if (err) {
                             console.error(`Error deleting file ${filePath}: ${err}`);
@@ -100,11 +117,17 @@ export default class FileLog78 implements IFileLog78 {
 }
 
 private getDateFromFilename(filename: string): Date | null {
-    const match = filename.match(/7788_(\d{4}-\d{2}-\d{2})/);
+    const match = filename.match(/7788_(\d{4}-\d{2}-\d{2}-\d{2})/);
     if (match) {
-        return new Date(match[1]);
+        return new Date(match[1].replace(/-/g, ':'));
     }
     return null;
+}
+
+public close(): void {
+	if (this.logger) {
+		this.logger.close();
+	}
 }
 
  

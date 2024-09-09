@@ -149,17 +149,22 @@ export class TsLog78 {
    * @param logEntry 日志条目
    */
   private async processLog(logEntry: LogEntry): Promise<void> {
+    // 添加详细日志记录，放在最前面，不受其他条件限制
+    if (this.detailLogger) {
+        this.detailLogger.logToFile(logEntry);
+    }
+
     if (!logEntry.basic) {
-      await this.errorEntry(new LogEntry({ 
-        basic: { 
-          summary: "Error: LogEntry or LogEntry.basic is null",
-          message: "Invalid log entry",
-          logLevelNumber: 60, // ERROR level
-          timestamp: new Date(),
-          logLevel: "ERROR"
-        } 
-      }));
-      return;
+        await this.errorEntry(new LogEntry({ 
+            basic: { 
+                summary: "Error: LogEntry or LogEntry.basic is null",
+                message: "Invalid log entry",
+                logLevelNumber: 60, // ERROR level
+                timestamp: new Date(),
+                logLevel: "ERROR"
+            } 
+        }));
+        return;
     }
 
     const isDebug = this.isDebugKey(logEntry);
@@ -173,25 +178,19 @@ export class TsLog78 {
     }
 
     if (isDebug || logEntry.basic.logLevelNumber >= this.levelApi) {
-      if (this.serverLogger) {
-        await this.serverLogger.logToServer(logEntry);
-      }
+        if (this.serverLogger) {
+            await this.serverLogger.logToServer(logEntry);
+        }
     }
 
-    // 正常的文件日志记录逻辑
     if (isDebug || logEntry.basic.logLevelNumber >= this.levelFile) {
-      this.fileLogger?.logToFile(logEntry);
+        this.fileLogger?.logToFile(logEntry);
     }
 
     if (isDebug || logEntry.basic.logLevelNumber >= this.levelConsole) {
-      this.consoleLogger?.writeLine(logEntry);
+        this.consoleLogger?.writeLine(logEntry);
     }
-
-    // 添加详细日志记录
-    if (this.detailLogger) {
-      this.detailLogger.logToFile(logEntry);
-    }
-  }
+}
 
   /**
    * 检查日志条目是否匹配调试条件
@@ -464,6 +463,19 @@ export class TsLog78 {
    */
   public setupDetailFile(menu: string = "logs", filename: string = "detail.log"): void {
     this.detailLogger = new FileLogDetail(menu, filename);
+  }
+
+  /**
+   * 关闭所有日志记录器
+   */
+  public close(): void {
+    if (this.fileLogger instanceof FileLog78) {
+      this.fileLogger.close();
+    }
+    if (this.detailLogger instanceof FileLogDetail) {
+      this.detailLogger.close();
+    }
+    // 如果有其他需要关闭的日志记录器，也在这里添加
   }
 } // 类定义结束
 
