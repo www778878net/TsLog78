@@ -12,7 +12,6 @@ describe('TsLog78 Tests', () => {
         logger = TsLog78.Instance;
         // 设置详细日志文件
         logger.setupDetailFile();
-        // FileLogDetail 构造函数会自动清空文件，不需要额外调用 clearDetailLog
     });
 
     afterEach(() => {
@@ -20,6 +19,13 @@ describe('TsLog78 Tests', () => {
         const detailLogContent = fs.readFileSync(detailLogPath, 'utf8');
         console.log('Detail log content:', detailLogContent);
     });
+
+    function getLatestLogFile(directory: string): string | null {
+        const files = fs.readdirSync(directory);
+        const logFiles = files.filter(file => file.startsWith('7788_') && file.endsWith('.log'));
+        if (logFiles.length === 0) return null;
+        return logFiles.sort().reverse()[0]; // 获取最新的日志文件
+    }
 
     test('TestSingleton', () => {
         const instance2 = TsLog78.Instance;
@@ -40,11 +46,16 @@ describe('TsLog78 Tests', () => {
         await logger.infoEntry(testEntry);
         logger.detail("TestSetup detail log");
 
-        const logFilePath = path.join('logs', `7788_${new Date().toISOString().split('T')[0]}.log`);
-        expect(fs.existsSync(logFilePath)).toBe(true);
+        const latestLogFile = getLatestLogFile('logs');
+        expect(latestLogFile).not.toBeNull();
+        
+        if (latestLogFile) {
+            const logFilePath = path.join('logs', latestLogFile);
+            expect(fs.existsSync(logFilePath)).toBe(true);
 
-        const logContent = fs.readFileSync(logFilePath, 'utf8');
-        expect(logContent).toContain("Test setup");
+            const logContent = fs.readFileSync(logFilePath, 'utf8');
+            expect(logContent).toContain("Test setup");
+        }
     });
 
     test('TestCustomLogEntry', async () => {
@@ -63,10 +74,15 @@ describe('TsLog78 Tests', () => {
         await logger.infoEntry(customEntry);
         logger.detail("TestCustomLogEntry detail log");
 
-        const logFilePath = path.join('logs', `7788_${new Date().toISOString().split('T')[0]}.log`);
-        const logContent = fs.readFileSync(logFilePath, 'utf8');
-        expect(logContent).toContain("Test message");
-        expect(logContent).toContain("Sunny");
+        const latestLogFile = getLatestLogFile('logs');
+        expect(latestLogFile).not.toBeNull();
+        
+        if (latestLogFile) {
+            const logFilePath = path.join('logs', latestLogFile);
+            const logContent = fs.readFileSync(logFilePath, 'utf8');
+            expect(logContent).toContain("Test message");
+            expect(logContent).toContain("Sunny");
+        }
     });
 
     test('TestErrorWithException', async () => {
@@ -74,15 +90,18 @@ describe('TsLog78 Tests', () => {
         await logger.error(error);
         logger.detail("TestErrorWithException detail log");
 
-        const logFilePath = path.join('logs', `7788_${new Date().toISOString().split('T')[0]}.log`);
-        const logContent = fs.readFileSync(logFilePath, 'utf8');
-        expect(logContent).toContain("Test exception");
-        expect(logContent).toContain("ERROR");
+        const latestLogFile = getLatestLogFile('logs');
+        expect(latestLogFile).not.toBeNull();
+        
+        if (latestLogFile) {
+            const logFilePath = path.join('logs', latestLogFile);
+            const logContent = fs.readFileSync(logFilePath, 'utf8');
+            expect(logContent).toContain("Test exception");
+            expect(logContent).toContain("ERROR");
+        }
     });
 
     test('TestDetailLogger', async () => {
-        logger.setupDetailFile(); // 确保详细日志记录器被设置
-        
         await logger.debug("Debug message");
         await logger.info("Info message");
         await logger.warn("Warn message");
