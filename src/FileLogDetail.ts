@@ -8,6 +8,7 @@ export default class FileLogDetail implements IFileLog78 {
 
     constructor(filename: string = "detail.log", menu: string = "logs", clearOnCreate: boolean = true) {
       this.filePath = path.join(menu, filename);
+      console.log(`detail file path: ${this.filePath}`)
       if (clearOnCreate) {
           this.clear();
       }

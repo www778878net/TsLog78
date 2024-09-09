@@ -125,12 +125,11 @@ export class TsLog78 {
    * @param serverLogger 服务器日志记录器
    * @param fileLogger 文件日志记录器
    * @param consoleLogger 控制台日志记录器
-   * @param testDate 测试日期
    */
-  public setup(serverLogger?: IServerLog78, fileLogger?: IFileLog78, consoleLogger?: IConsoleLog78) {
+  public setup(serverLogger?: IServerLog78, fileLogger: IFileLog78 = new FileLog78(), consoleLogger: IConsoleLog78 = new ConsoleLog78()) {
     this.serverLogger = serverLogger;
-    this.fileLogger = fileLogger || this.fileLogger;
-    this.consoleLogger = consoleLogger || this.consoleLogger;
+    this.fileLogger = fileLogger;
+    this.consoleLogger = consoleLogger;
   }
 
   /**

@@ -52,7 +52,7 @@ export default class FileLog78 implements IFileLog78 {
 			transports: [transport]
 		});
 
-		this.clear(); // 在构造函数中调用clear，与C#版本保持一致
+		//this.clear(); // 在构造函数中调用clear，与C#版本保持一致
 	
 	}
 
