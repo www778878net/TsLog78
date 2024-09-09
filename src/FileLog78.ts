@@ -59,9 +59,7 @@ export default class FileLog78 implements IFileLog78 {
 	logToFile(logEntry: LogEntry): void {
 	 
 		try {
-			if (this.logger) {
-				const currentFileName = this.getCurrentFileName();
-				console.log(`Writing to file: ${currentFileName}`);
+			if (this.logger) {		
 				
 				this.logger.info(logEntry.toJson());
 			} else {
@@ -77,19 +75,7 @@ export default class FileLog78 implements IFileLog78 {
 	 
 	}
 
-	private getCurrentFileName(): string {
-		if (this.logger && this.logger.transports.length > 0) {
-			const transport = this.logger.transports[0] as DailyRotateFile;
-			if (transport instanceof DailyRotateFile) {
-				return transport.filename; // 使用 filename 属性而不是 getFilename 方法
-			}
-		}
-		// 如果无法从 logger 获取文件名，则使用默认的文件名格式
-		const now = new Date();
-		const dateString = now.toISOString().split('T')[0];
-		const hour = now.getHours().toString().padStart(2, '0');
-		return this.file.replace('%DATE%', dateString).replace('%HOUR%', hour);
-	}
+
 
    // 清除日志的方法
    clear(): void {
