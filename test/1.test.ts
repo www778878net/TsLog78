@@ -12,12 +12,14 @@ describe('TsLog78 Tests', () => {
         logger = TsLog78.Instance;
         // 设置详细日志文件
         logger.setupDetailFile();
+        // 清空 detail.log
+        logger.clearDetailLog();
     });
 
     afterEach(() => {
         // 在每个测试后读取 detail.log 的内容
         const detailLogContent = fs.readFileSync(detailLogPath, 'utf8');
-        console.log('Detail log content:', detailLogContent);
+        console.log('AI_LOG_SUMMARY:', detailLogContent.split('\n').slice(-5).join('\n'));
     });
 
     function getLatestLogFile(directory: string): string | null {

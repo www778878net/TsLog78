@@ -12,4 +12,4 @@
   . 默认生产环境：error打印控制台，info以上打印文件，warn以上打印API 
   . 开发环境:debug以上打印控制台，debug以上打印文件，warn以上打印API
   . 测试环境:error打印控制台，debug以上打印文件，warn以上打印API
-  . 开发环境特别增加一个功能全部打印文件方便AI调试 每次新开清空文件 文件名debug.log
+  . 开发环境特别增加一个功能全部打印文件方便AI调试 每次新开清空文件 文件名detail.log

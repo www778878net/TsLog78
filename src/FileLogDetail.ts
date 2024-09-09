@@ -13,14 +13,14 @@ export default class FileLogDetail implements IFileLog78 {
       }
   }
 
-    logToFile(logEntry: LogEntry): void {
-        try {
-            const logString = logEntry.toJson() + '\n';
-            fs.appendFileSync(this.filePath, logString);
-        } catch (error) {
-            console.error(`写入详细日志文件时出错: ${error}`);
-        }
+  logToFile(logEntry: LogEntry): void {
+    try {
+        const logString = '<AI_FOCUS_LOG>' + logEntry.toJson() + '</AI_FOCUS_LOG>\n';
+        fs.appendFileSync(this.filePath, logString);
+    } catch (error) {
+        console.error(`写入详细日志文件时出错: ${error}`);
     }
+}
 
     clear(): void {
         // 清空文件
