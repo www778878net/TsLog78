@@ -26,7 +26,7 @@ export default class FileLog78 implements IFileLog78 {
 	private file: string;
 	private logger?: winston.Logger;
 
-	constructor(filename: string = "7788_log", menu: string = "logs") {
+	constructor(filename: string = "7788_%DATE%.log", menu: string = "logs") {
 		this.file = filename;
 		this.menu = menu;
 
