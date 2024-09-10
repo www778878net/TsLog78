@@ -17,4 +17,5 @@ import  LogEntry  from './LogEntry';
 export default interface IFileLog78 {
   logToFile(logEntry: LogEntry): void;
   clear(): void;
+  close(): void;  // 添加这行
 }
