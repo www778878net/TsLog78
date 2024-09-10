@@ -77,9 +77,9 @@ export class TsLog78 {
 
   constructor() {
     this.setEnvironment();
-    if (this.isDevMode) {
-      this.setupDetailFile(); // 在开发模式下自动设置详细日志文件
-    }
+    // if (this.isDevMode) {
+    //   this.setupDetailFile(); // 在开发模式下自动设置详细日志文件
+    // }
   }
 
   /**
@@ -434,7 +434,7 @@ export class TsLog78 {
    * @param menu 目录
    */
   public setupDetailFile(filename: string = "detail.log", menu: string = "logs"): void {
-    console.log(`setupDetailFile   path: ${filename}`)
+     
     this.detailLogger = new FileLogDetail(filename, menu);
   }
 
