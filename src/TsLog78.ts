@@ -436,11 +436,13 @@ export class TsLog78 {
    * @param menu 目录
    */
   public setupDetailFile(filename: string = "detail.log", menu: string = "logs"): void {
-      console.log(`正在设置详细日志文件: ${path.join(menu, filename)}`);
+      const fullPath = path.join(process.cwd(), menu, filename);
+      console.log(`正在设置详细日志文件: ${fullPath}`);
       try {
-          if (!fs.existsSync(menu)) {
-              console.log(`创建目录: ${menu}`);
-              fs.mkdirSync(menu, { recursive: true });
+          const logDir = path.dirname(fullPath);
+          if (!fs.existsSync(logDir)) {
+              console.log(`创建目录: ${logDir}`);
+              fs.mkdirSync(logDir, { recursive: true });
           }
           this.detailLogger = new FileLogDetail(filename, menu);
           console.log('详细日志文件设置成功');

@@ -32,7 +32,7 @@ describe('TsLog78 Tests', () => {
         const logFiles = files.filter(file => file.startsWith('7788_') && file.endsWith('.log'));
         console.log(`找到的日志文件: ${logFiles.join(', ')}`);
         if (logFiles.length === 0) return null;
-        return logFiles.sort().reverse()[0]; // 获取最新的日志文件
+        return path.join(directory, logFiles.sort().reverse()[0]); // 返回完整路径
     }
 
     test('TestSingleton', () => {
@@ -58,10 +58,9 @@ describe('TsLog78 Tests', () => {
         expect(latestLogFile).not.toBeNull();
         
         if (latestLogFile) {
-            const logFilePath = path.join('logs', latestLogFile);
-            expect(fs.existsSync(logFilePath)).toBe(true);
+            expect(fs.existsSync(latestLogFile)).toBe(true);
 
-            const logContent = fs.readFileSync(logFilePath, 'utf8');
+            const logContent = fs.readFileSync(latestLogFile, 'utf8');
             expect(logContent).toContain("Test setup");
         }
     });
