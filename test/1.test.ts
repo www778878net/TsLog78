@@ -32,7 +32,7 @@ describe('TsLog78 Tests', () => {
         const logFiles = files.filter(file => file.startsWith('7788_') && file.endsWith('.log'));
         console.log(`找到的日志文件: ${logFiles.join(', ')}`);
         if (logFiles.length === 0) return null;
-        return logFiles.sort().reverse()[0]; // 获取最新的日志文件
+        return logFiles.sort().reverse()[0]; // 返回最新的日志文件名
     }
 
     test('TestSingleton', () => {
@@ -55,10 +55,13 @@ describe('TsLog78 Tests', () => {
         logger.detail("TestSetup detail log");
 
         const latestLogFile = getLatestLogFile('logs');
+        console.log('最新日志文件:', latestLogFile);
+        
         expect(latestLogFile).not.toBeNull();
         
         if (latestLogFile) {
             const logFilePath = path.join('logs', latestLogFile);
+            console.log('日志文件路径:', logFilePath);
             expect(fs.existsSync(logFilePath)).toBe(true);
 
             const logContent = fs.readFileSync(logFilePath, 'utf8');
@@ -87,6 +90,8 @@ describe('TsLog78 Tests', () => {
         
         if (latestLogFile) {
             const logFilePath = path.join('logs', latestLogFile);
+            console.log(`尝试读取文件: ${logFilePath}`);
+            expect(fs.existsSync(logFilePath)).toBe(true);
             const logContent = fs.readFileSync(logFilePath, 'utf8');
             expect(logContent).toContain("Test message");
             expect(logContent).toContain("Sunny");
@@ -103,6 +108,8 @@ describe('TsLog78 Tests', () => {
         
         if (latestLogFile) {
             const logFilePath = path.join('logs', latestLogFile);
+            console.log(`尝试读取文件: ${logFilePath}`);
+            expect(fs.existsSync(logFilePath)).toBe(true);
             const logContent = fs.readFileSync(logFilePath, 'utf8');
             expect(logContent).toContain("Test exception");
             expect(logContent).toContain("ERROR");

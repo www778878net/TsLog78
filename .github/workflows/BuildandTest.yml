@@ -48,3 +48,25 @@ jobs:
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Debug file system
+        run: |
+          pwd
+          ls -R
+          echo "Current directory contents:"
+          ls -la
+          echo "Logs directory contents:"
+          ls -la logs || echo "Logs directory not found"
+
+      - name: Run tests with verbose output
+        run: pnpm test -- --verbose
+
+      - name: Display test logs
+        if: always()
+        run: |
+          echo "Logs directory contents after tests:"
+          ls -la logs || echo "Logs directory not found"
+          echo "Detail log contents:"
+          cat logs/detail.log || echo "Detail log not found"
+          echo "Latest log file contents:"
+          cat logs/$(ls -t logs | grep '^7788_' | head -1) || echo "No log files found"
