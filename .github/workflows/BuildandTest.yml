@@ -11,29 +11,38 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0 # 获取完整历史记录 
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v2
         with:
           version: 8
   
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Create logs directory
-        run: mkdir -p logs
+      - name: Create and check logs directory
+        run: |
+          mkdir -p logs
+          ls -la
+          ls -la logs
+          pwd
 
       - name: Run tests
         run: pnpm test
+
+      - name: Check logs after tests
+        run: |
+          ls -la logs
+          cat logs/detail.log || echo "detail.log not found"
 
       - name: Publish to NPM
         run: npm publish --access public

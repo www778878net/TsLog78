@@ -8,12 +8,14 @@ describe('TsLog78 Tests', () => {
     const detailLogPath = path.join('logs', 'detail.log');
 
     beforeAll(() => {
-        // 确保使用单例
+        console.log('当前工作目录:', process.cwd());
+        console.log('logs 目录内容:', fs.readdirSync('logs'));
+
         logger = TsLog78.Instance;
-        // 设置详细日志文件
         logger.setupDetailFile();
-        // 清空 detail.log
         logger.clearDetailLog();
+
+        console.log('detail.log 是否存在:', fs.existsSync(detailLogPath));
     });
 
     afterEach(() => {
@@ -23,8 +25,12 @@ describe('TsLog78 Tests', () => {
     });
 
     function getLatestLogFile(directory: string): string | null {
+        console.log(`正在查找目录: ${directory}`);
+        console.log(`目录是否存在: ${fs.existsSync(directory)}`);
         const files = fs.readdirSync(directory);
+        console.log(`目录中的文件: ${files.join(', ')}`);
         const logFiles = files.filter(file => file.startsWith('7788_') && file.endsWith('.log'));
+        console.log(`找到的日志文件: ${logFiles.join(', ')}`);
         if (logFiles.length === 0) return null;
         return logFiles.sort().reverse()[0]; // 获取最新的日志文件
     }
