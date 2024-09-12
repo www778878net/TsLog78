@@ -11,18 +11,18 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0 # 获取完整历史记录 
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v2
         with:
           version: 8
   
@@ -48,3 +48,25 @@ jobs:
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Debug file system
+        run: |
+          pwd
+          ls -R
+          echo "Current directory contents:"
+          ls -la
+          echo "Logs directory contents:"
+          ls -la logs || echo "Logs directory not found"
+
+      - name: Run tests with verbose output
+        run: pnpm test -- --verbose
+
+      - name: Display test logs
+        if: always()
+        run: |
+          echo "Logs directory contents after tests:"
+          ls -la logs || echo "Logs directory not found"
+          echo "Detail log contents:"
+          cat logs/detail.log || echo "Detail log not found"
+          echo "Latest log file contents:"
+          cat logs/$(ls -t logs | grep '^7788_' | head -1) || echo "No log files found"

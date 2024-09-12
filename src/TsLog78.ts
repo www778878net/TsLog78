@@ -446,6 +446,12 @@ export class TsLog78 {
           }
           this.detailLogger = new FileLogDetail(filename, menu);
           console.log('详细日志文件设置成功');
+          // 检查文件是否真的创建了
+          if (fs.existsSync(fullPath)) {
+              console.log(`详细日志文件已创建: ${fullPath}`);
+          } else {
+              console.error(`详细日志文件创建失败: ${fullPath}`);
+          }
       } catch (error) {
           console.error('设置详细日志文件时出错:', error);
       }
