@@ -29,7 +29,7 @@ describe('TsLog78 Tests', () => {
         console.log(`目录是否存在: ${fs.existsSync(directory)}`);
         const files = fs.readdirSync(directory);
         console.log(`目录中的文件: ${files.join(', ')}`);
-        const logFiles = files.filter(file => file.startsWith('7788_') && file.endsWith('.log'));
+        const logFiles = files.filter(file => file.endsWith('.log'));
         console.log(`找到的日志文件: ${logFiles.join(', ')}`);
         if (logFiles.length === 0) return null;
         return logFiles.sort().reverse()[0]; // 返回最新的日志文件名
