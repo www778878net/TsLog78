@@ -74,8 +74,6 @@ export class TsLog78 {
     return TsLog78.instance;
   }
 
-  /** 是否处于开发模式 */
-  private isDevMode: boolean = false;
 
   constructor() {
     this.setEnvironment();
@@ -89,7 +87,7 @@ export class TsLog78 {
    */
   private setEnvironment() {
     const env = process.env.NODE_ENV || 'production';
-    this.isDevMode = env === 'development';
+ 
     this.setupLevelByEnv(env);
   }
 
