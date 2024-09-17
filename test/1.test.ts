@@ -82,6 +82,25 @@ describe('TsLog78 Tests', () => {
             }
         });
 
+        const jsonString = customEntry.toJson();
+        console.log('Generated JSON:', jsonString);
+
+        const parsedJson = JSON.parse(jsonString);
+        console.log('Parsed JSON:', parsedJson);  // 添加这行
+        
+        expect(parsedJson.message).toBe("Test message");
+        expect(parsedJson.summary).toBe("Test summary");
+        expect(parsedJson.loglevel).toBe("INFO");
+        expect(parsedJson.loglevelnumber).toBe(30); // 修改这里
+        expect(parsedJson.weather).toBe("Sunny");
+        
+        // 确保没有嵌套对象
+        expect(parsedJson.basic).toBeUndefined();
+        expect(parsedJson.additionalproperties).toBeUndefined();
+
+        // 确保所有键都是小写
+        expect(Object.keys(parsedJson).every(key => key === key.toLowerCase())).toBe(true);
+
         await logger.infoEntry(customEntry);
         logger.detail("TestCustomLogEntry detail log");
 
@@ -129,5 +148,43 @@ describe('TsLog78 Tests', () => {
         expect(detailLogContent).toContain("Warn message");
         expect(detailLogContent).toContain("Error message");
         expect(detailLogContent).toContain("TestDetailLogger log");
+    });
+
+    test('TestObjectMessage', () => {
+        const objectMessage = {
+            id: 123,
+            content: "This is a test object message"
+        };
+
+        const customEntry = new LogEntry({
+            basic: {
+                message: objectMessage,
+                summary: "Object message test",
+                logLevelNumber: 30,
+                logLevel: "INFO"
+            },
+            additionalProperties: {
+                weather: "Cloudy"
+            }
+        });
+
+        const jsonString = customEntry.toJson();
+        console.log('Generated JSON:', jsonString);
+
+        const parsedJson = JSON.parse(jsonString);
+        console.log('Parsed JSON:', parsedJson);  // 添加这行
+        
+        expect(parsedJson.message).toBe(JSON.stringify(objectMessage));
+        expect(parsedJson.summary).toBe("Object message test");
+        expect(parsedJson.loglevel).toBe("INFO");
+        expect(parsedJson.loglevelnumber).toBe(30); // 修改这里
+        expect(parsedJson.weather).toBe("Cloudy");
+        
+        // 确保没有嵌套对象
+        expect(parsedJson.basic).toBeUndefined();
+        expect(parsedJson.additionalproperties).toBeUndefined();
+
+        // 确保所有键都是小写
+        expect(Object.keys(parsedJson).every(key => key === key.toLowerCase())).toBe(true);
     });
 });

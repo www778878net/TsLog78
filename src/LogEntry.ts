@@ -13,20 +13,11 @@ export default class LogEntry {
   }
 
   public toJson(): string {
-    const jsonObj = { ...this };
-  
-    // 检查并转换 basic.message 如果它是一个对象
+    const jsonObj = this.flattenObject(this);
+    
+    // 如果 basic.message 是对象,将其转换为字符串
     if (typeof this.basic.message === 'object' && this.basic.message !== null) {
-      jsonObj.basic.message = JSON.stringify(this.basic.message);
-    }
-
-    // 检查并转换 additionalProperties 中的对象
-    if (this.additionalProperties) {
-      for (const key in this.additionalProperties) {
-        if (typeof this.additionalProperties[key] === 'object' && this.additionalProperties[key] !== null) {
-          jsonObj.additionalProperties[key] = JSON.stringify(this.additionalProperties[key]);
-        }
-      }
+      jsonObj.message = JSON.stringify(this.basic.message);
     }
 
     return JSON.stringify(jsonObj);
@@ -35,10 +26,12 @@ export default class LogEntry {
   private flattenObject(obj: any): any {
     const flattened: any = {};
     Object.keys(obj).forEach(key => {
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
+      if (key === 'additionalProperties') {
+        Object.assign(flattened, obj[key]);
+      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
         Object.assign(flattened, this.flattenObject(obj[key]));
-      } else if (obj[key] !== null && obj[key] !== undefined && obj[key] !== '') {
-        flattened[key.toLowerCase()] = obj[key];
+      } else if (obj[key] !== null && obj[key] !== undefined && (obj[key] !== '' || typeof obj[key] === 'number')) {
+        flattened[key.toLowerCase()] = obj[key]; // 不再转换为字符串
       }
     });
     return flattened;
