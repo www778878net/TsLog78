@@ -1,6 +1,6 @@
 {
   "name": "tslog78",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "description": "TSLog78 arranges different log levels by priority. (TSLog78 按日志优先级安排不同的日志等级)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
